@@ -1,6 +1,6 @@
 {
   "name": "@gxpl/sdk",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Generic SDK for use in public websites.",
   "main": "dist/index.js",
   "module": "dist/index.mjs",

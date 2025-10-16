@@ -5,8 +5,8 @@ import path from 'path';
 import ejs from 'ejs';
 import { config } from 'dotenv';
 import { program } from 'commander';
-import { Client } from './Client/Client';
-import { Layout } from './types/project/Layout';
+import { Client } from './sdk/Client/Client';
+import { Layout } from './sdk/types/project/Layout';
 
 program
   .command('generate-layouts')

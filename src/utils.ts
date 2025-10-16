@@ -1,4 +1,4 @@
-import { Layout } from './types/project/Layout';
+import { Layout } from './sdk/types/project/Layout';
 
 export function getLayoutStyles<V, M> (
   layouts: Layout[],

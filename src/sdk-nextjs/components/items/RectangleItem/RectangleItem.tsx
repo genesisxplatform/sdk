@@ -185,6 +185,7 @@ function Fill({ fill, itemId, background, solidTransition }: { fill: FillLayer; 
             }
           : { background }),
         position: 'absolute',
+        borderRadius: 'inherit',
         mixBlendMode: fill.blendMode as any,
         top: 0,
         left: 0,

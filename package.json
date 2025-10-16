@@ -1,0 +1,84 @@
+{
+  "name": "@gxpl/sdk",
+  "version": "0.0.1",
+  "description": "Generic SDK for use in public websites.",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "style": "dist/sdk.css",
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./style/sdk.css": {
+      "default": "./dist/sdk.css"
+    }
+  },
+  "scripts": {
+    "test": "jest",
+    "dev": "vite development",
+    "prebuild": "rimraf ./dist",
+    "build": "vite build && tsc --project tsconfig.build.json",
+    "prepublishOnly": "cross-env NODE_ENV=production npm run build"
+  },
+  "bin": {
+    "cntrl-sdk": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "resources"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/genesisxplatform/sdk.git"
+  },
+  "author": "arsen@momdesign.nyc",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/genesisxplatform/sdk/issues"
+  },
+  "homepage": "https://github.com/genesisxplatform/sdk#readme",
+  "directories": {
+    "lib": "dist"
+  },
+  "dependencies": {
+    "@splidejs/react-splide": "^0.7.12",
+    "@types/ejs": "^3.1.2",
+    "@types/isomorphic-fetch": "^0.0.36",
+    "@types/ua-parser-js": "^0.7.39",
+    "classnames": "^2.5.1",
+    "commander": "^10.0.1",
+    "dotenv": "^16.1.3",
+    "ejs": "^3.1.9",
+    "isomorphic-fetch": "^3.0.0",
+    "mp4box": "^0.5.2",
+    "styled-jsx": "^5.1.6",
+    "ts-node": "^10.9.1",
+    "ua-parser-js": "^1.0.37",
+    "url": "^0.11.0",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@tsconfig/node16": "^1.0.3",
+    "@tsconfig/recommended": "^1.0.1",
+    "@types/jest": "^29.0.0",
+    "@types/node": "^18.11.7",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "cross-env": "^10.1.0",
+    "jest": "^28.1.3",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "sass": "^1.86.3",
+    "ts-jest": "^28.0.8",
+    "typescript": "^5.2.2",
+    "vite": "^6.2.5",
+    "vite-plugin-dts": "^4.5.3"
+  }
+}

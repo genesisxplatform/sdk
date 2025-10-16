@@ -1,0 +1,50 @@
+// CAUTION: THIS FILE IS AUTO-GENERATED BASED ON
+// LAYOUT CONFIGURATION IN YOUR CNTRL PROJECT
+// WE HIGHLY ADVICE YOU TO NOT CHANGE IT MANUALLY
+@use "sass:map";
+
+$__CNTRL_LAYOUT_WIDTH__: <%= ranges[0].exemplary %>;
+
+$layout: (
+<% ranges.forEach(function(range) { %>
+    <%= range.name %>: (
+        start: <%= range.start %>,
+        end: <%= range.end %>,
+        exemplary: <%= range.exemplary %>,
+        isFirst: <%= range.isFirst %>,
+        isLast: <%= range.isLast %>
+    ),
+<% }); %>
+);
+
+@function size($value) {
+    @return #{$value/$__CNTRL_LAYOUT_WIDTH__*100}vw;
+}
+
+@mixin for($name) {
+    $start: map.get(map.get($layout, $name), "start");
+    $end: map.get(map.get($layout, $name), "end");
+    $isFirst: map.get(map.get($layout, $name), "isFirst");
+    $isLast: map.get(map.get($layout, $name), "isLast");
+    $exemplary: map.get(map.get($layout, $name), "exemplary");
+    $__CNTRL_LAYOUT_WIDTH__: $exemplary !global;
+
+    @if $isFirst == true and $isLast == true {
+        @content;
+    } @else if $isFirst == true {
+        @media (max-width: #{$end}px) {
+            @content;
+        }
+    } @else if $isLast == true {
+        @media (min-width: #{$start}px) {
+            @content;
+        }
+    } @else {
+        @media (min-width: #{$start}px) and (max-width: #{$end}px) {
+            @content;
+        }
+    }
+
+    // reset global variable back to first layout's exemplary (mobile-first)
+    $__CNTRL_LAYOUT_WIDTH__: <%= ranges[0].exemplary %> !global;
+}

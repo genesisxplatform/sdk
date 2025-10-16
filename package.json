@@ -27,7 +27,7 @@
     "prepublishOnly": "cross-env NODE_ENV=production npm run build"
   },
   "bin": {
-    "cntrl-sdk": "dist/cli.js"
+    "gxpl-sdk": "dist/cli.js"
   },
   "files": [
     "dist",

@@ -5,7 +5,7 @@ import { Project } from '../../sdk/types/project/Project';
 import { CustomItemRegistry } from './CustomItemRegistry';
 import { CustomSectionRegistry } from './CustomSectionRegistry';
 import { Component as TComponent } from '../../sdk/types/component/Component';
-import { components } from '../../sdk/Components/components';
+import { components } from '@cntrl-site/components';
 
 interface SdkContextInitProps {
   project: Project;

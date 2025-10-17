@@ -29,7 +29,6 @@ export type { Meta } from './sdk/types/project/Meta';
 export type { KeyframeValueMap, KeyframeAny } from './sdk/types/keyframe/Keyframe';
 export type { CompoundSettings } from './sdk/types/article/CompoundSettings';
 export type { Component } from './sdk/types/component/Component';
-export { components } from './sdk/Components/components';
 
 // SDK nextjs
 import { cntrlSdkContext as sdk } from './sdk-nextjs/provider/defaultContext';

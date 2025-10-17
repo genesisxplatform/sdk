@@ -1,13 +1,19 @@
 {
   "extends": "@tsconfig/node16",
   "compilerOptions": {
-    "outDir": "./dist",
+    "outDir": "./lib",
     "moduleResolution": "Node",
     "module": "CommonJS",
+    "jsx": "react-jsx",
     "target": "ES2015",
-    "lib": ["dom"]
+    "lib": ["DOM", "DOM.Iterable"]
   },
   "include": [
-    "./src/cli.ts"
+    "./src/**.ts",
+    "./src/**.tsx"
+  ],
+  "exclude": [
+    "./src/**.test.ts",
+    "./src/**.test.tsx"
   ]
 }

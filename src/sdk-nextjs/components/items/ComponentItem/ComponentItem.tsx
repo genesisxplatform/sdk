@@ -6,17 +6,12 @@ import { useComponentItem } from './useComponentItem';
 import { useItemAngle } from '../useItemAngle';
 import { useRegisterResize } from '../../../common/useRegisterResize';
 import { getStyleFromItemStateAndParams } from '../../../utils/getStyleFromItemStateAndParams';
-import { useLayoutContext } from '../../useLayoutContext';
 import { ComponentItem as TComponentItem } from '../../../../sdk/types/article/Item';
-import { getLayoutStyles } from '../../../../utils';
 
 export const ComponentItem: FC<ItemProps<TComponentItem>> = ({ item, sectionId, onResize, interactionCtrl }) => {
   const sdk = useCntrlContext();
-  const { layouts } = sdk;
   const itemAngle = useItemAngle(item, sectionId);
-  const layout = useLayoutContext();
-  const layoutValues: Record<string, any>[] = [item.area, item.layoutParams];
-  const component = sdk.getComponent(item.commonParams.componentId);
+  const component = sdk.getComponent(item.params.componentId);
   const [ref, setRef] = useState<HTMLDivElement | null>(null);
   const { opacity: itemOpacity, blur: itemBlur } = useComponentItem(item, sectionId);
   useRegisterResize(ref, onResize);
@@ -25,15 +20,15 @@ export const ComponentItem: FC<ItemProps<TComponentItem>> = ({ item, sectionId, 
   const opacity = getStyleFromItemStateAndParams(stateParams?.styles?.opacity, itemOpacity);
   const blur = getStyleFromItemStateAndParams(stateParams?.styles?.blur, itemBlur);
   const Element = component ? component.element : undefined;
-  const parameters = layout ? item.layoutParams[layout].parameters : undefined;
+  const parameters = item.params.parameters;
   return (
     <>
       <div
         className={`custom-component-${item.id}`}
         ref={setRef}
         style={{
-          ...(opacity !== undefined ? { opacity } : {}),
-          ...(angle !== undefined ? { transform: `rotate(${angle}deg)` } : {}),
+          opacity,
+          transform: `rotate(${angle}deg)`,
           ...(blur !== undefined ? { filter: `blur(${blur * 100}vw)` } : {}),
           willChange: blur !== 0 && blur !== undefined ? 'transform' : 'unset',
           transition: stateParams?.transition ?? 'none'
@@ -41,27 +36,22 @@ export const ComponentItem: FC<ItemProps<TComponentItem>> = ({ item, sectionId, 
       >
         {parameters && Element && (
           <Element
-            content={item.commonParams.content}
+            content={item.params.content}
             {...parameters}
           />
         )}
       </div>
       <JSXStyle id={item.id}>{`
-      .custom-component-${item.id} {
-        width: 100%;
-        height: 100%;
-        pointer-events: auto;
-      }
-      ${getLayoutStyles(layouts, layoutValues, ([area, layoutParams]) => {
-      return (`
-          .custom-component-${item.id} {
-            transform: rotate(${area.angle}deg);
-            opacity: ${layoutParams.opacity};
-            filter: blur(${layoutParams.blur}vw);
-            ${layoutParams.blur !== 0 ? 'will-change: transform;' : ''}
-          }
-        `);
-    })}`}
+        .custom-component-${item.id} {
+          width: 100%;
+          height: 100%;
+          pointer-events: auto;
+          transform: rotate(${item.area.angle}deg);
+          opacity: ${item.params.opacity};
+          filter: blur(${item.params.blur}vw);
+          ${item.params.blur !== 0 ? 'will-change: transform;' : ''}
+        }
+      `}
       </JSXStyle>
     </>
   );

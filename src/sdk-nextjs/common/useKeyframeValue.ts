@@ -3,12 +3,11 @@ import { DependencyList, useCallback, useContext, useEffect, useMemo, useRef, us
 import { ArticleRectContext } from '../provider/ArticleRectContext';
 import { KeyframesContext } from '../provider/KeyframesContext';
 import { AnimationData, Animator } from '../utils/Animator/Animator';
-import { useLayoutContext } from '../components/useLayoutContext';
 import { ItemAny } from '../../sdk/types/article/Item';
 import { KeyframeType } from '../../sdk/types/keyframe/Keyframe';
 
 export type AnimatorGetter<T> = (animator: Animator, scroll: number, value: T) => T;
-type ItemParamGetter<T> = (item: ItemAny, layoutId: string | undefined) => T;
+type ItemParamGetter<T> = (item: ItemAny) => T;
 const emptyDeps: DependencyList = [];
 
 export function useKeyframeValue<T>(
@@ -26,28 +25,26 @@ export function useKeyframeValue<T>(
   itemParamsGetterRef.current = itemParamsGetter;
 
   const articleRectObserver = useContext(ArticleRectContext);
-  const layoutId = useLayoutContext();
   const keyframesRepo = useContext(KeyframesContext);
   const keyframes = useMemo(() => keyframesRepo.getItemKeyframes(item.id).filter(kf => kf.type === type), [item.id, keyframesRepo, type]);
   const paramValue = useMemo<T>(() => {
-    return itemParamsGetterRef.current(item, layoutId);
-  }, [item, layoutId, ...deps]);
+    return itemParamsGetterRef.current(item);
+  }, [item, ...deps]);
 
   const [adjustedValue, setAdjustedValue] = useState<T>(paramValue);
   const adjustedValueRef = useRef<T>(adjustedValue);
   adjustedValueRef.current = adjustedValue;
 
   const animator = useMemo(() => {
-    if (!layoutId || !keyframes.length) return;
+    if (!keyframes.length) return;
     const animationData = keyframes
-      .filter(k => k.layoutId === layoutId)
       .map<AnimationData<KeyframeType>>(({ position, type, value }) => ({
         position,
         type,
         value
       }));
     return new Animator(animationData);
-  }, [keyframes, layoutId]);
+  }, [keyframes]);
 
   const handleKeyframeValue = useCallback((scroll: number) => {
     if (!animator) return;

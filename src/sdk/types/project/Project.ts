@@ -1,4 +1,3 @@
-import { Layout } from './Layout';
 import { Fonts } from './Fonts';
 import { Meta } from './Meta';
 import { Page } from './Page';
@@ -13,7 +12,7 @@ export interface Project {
   id: string;
   html: AdditionalHTML;
   meta: Meta;
-  layouts: Layout[];
+  exemplary: number;
   pages: Page[];
   fonts: Fonts;
 }

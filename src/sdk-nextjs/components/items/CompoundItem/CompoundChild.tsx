@@ -4,8 +4,6 @@ import React, {
   useId,
   useRef,
 } from 'react';
-import { useCntrlContext } from '../../../provider/useCntrlContext';
-import { useLayoutContext } from '../../useLayoutContext';
 import { useExemplary } from '../../../common/useExemplary';
 import { useItemScale } from '../useItemScale';
 import { useItemInteractionCtrl } from '../../../interactions/useItemInteractionCtrl';
@@ -28,7 +26,6 @@ import { useItemArea } from '../useItemArea';
 import { ArticleItemType } from '../../../../sdk/types/article/ArticleItemType';
 import { ItemAny } from '../../../../sdk/types/article/Item';
 import { AreaAnchor } from '../../../../sdk/types/article/ItemArea';
-import { getLayoutStyles } from '../../../../utils';
 
 interface ChildItemProps {
   item: ItemAny;
@@ -40,11 +37,9 @@ const noop = () => null;
 
 export const CompoundChild: FC<ChildItemProps> = ({ item, sectionId, isParentVisible = true }) => {
   const id = useId();
-  const { layouts } = useCntrlContext();
-  const layout = useLayoutContext();
   const exemplary = useExemplary();
   const { handleVisibilityChange, allowPointerEvents } = useItemPointerEvents(
-    item.commonParams?.pointerEvents ?? 'when_visible',
+    item.params?.pointerEvents ?? 'when_visible',
     isParentVisible
   );
   const itemScale = useItemScale(item, sectionId);
@@ -52,7 +47,7 @@ export const CompoundChild: FC<ChildItemProps> = ({ item, sectionId, isParentVis
   const triggers = useItemTriggers(interactionCtrl);
   const wrapperStateProps = interactionCtrl?.getState<number>(['top', 'left', 'width', 'height']);
   const innerStateProps = interactionCtrl?.getState<number>(['scale']);
-  const compoundSettings = layout && item.compoundSettings ? item.compoundSettings[layout] : undefined;
+  const compoundSettings = item.compoundSettings;
   const { width, height, top, left } = useItemArea(item, sectionId, {
     top: wrapperStateProps?.styles?.top as number,
     left: wrapperStateProps?.styles?.left as number,
@@ -71,11 +66,8 @@ export const CompoundChild: FC<ChildItemProps> = ({ item, sectionId, isParentVis
   const isRichText = isItemType(item, ArticleItemType.RichText);
   const scale = innerStateProps?.styles?.scale ?? itemScale;
   const hasClickTriggers = interactionCtrl?.getHasTrigger(item.id, 'click') ?? false;
-  if (!item.compoundSettings) return null;
-  const layoutValues: Record<string, any>[] = [item.area, item.hidden, item.compoundSettings];
-  if (item.layoutParams) {
-    layoutValues.push(item.layoutParams);
-  }
+  const scaleAnchor = item.area.scaleAnchor as AreaAnchor;
+  if (!compoundSettings) return null;
   return (
     <div
       className={`item-${item.id}`}
@@ -84,19 +76,15 @@ export const CompoundChild: FC<ChildItemProps> = ({ item, sectionId, isParentVis
         interactionCtrl?.handleTransitionEnd?.(e.propertyName);
       }}
       style={{
-        ...(top !== undefined && compoundSettings ? { top: getCompoundTop(compoundSettings, top) } : {}),
-        ...(left !== undefined && compoundSettings ? { left: getCompoundLeft(compoundSettings, left) } : {}),
-        ...(width !== undefined && compoundSettings
-          ? { width: `${sizingAxis.x === 'manual'
-              ? getCompoundWidth(compoundSettings, width, isRichText, exemplary)
-              : 'max-content'}` }
-          : {}),
-        ...(height !== undefined && compoundSettings
-          ? { height: `${sizingAxis.y === 'manual'
-              ? getCompoundHeight(compoundSettings, height)
-              : 'unset'}` }
-          : {}),
-        ...(compoundSettings ? { transform: `${getCompoundTransform(compoundSettings)}` } : {}),
+        top: getCompoundTop(compoundSettings, top),
+        left: getCompoundLeft(compoundSettings, left),
+        width: `${sizingAxis.x === 'manual'
+          ? getCompoundWidth(compoundSettings, width, isRichText, exemplary)
+          : 'max-content'}`,
+        height: `${sizingAxis.y === 'manual'
+          ? getCompoundHeight(compoundSettings, height)
+          : 'unset'}`,
+        transform: `${getCompoundTransform(compoundSettings)}`,
         transition: wrapperStateProps?.transition ?? 'none',
         cursor: hasClickTriggers ? 'pointer' : 'unset',
         pointerEvents: allowPointerEvents ? 'auto' : 'none'
@@ -107,7 +95,7 @@ export const CompoundChild: FC<ChildItemProps> = ({ item, sectionId, isParentVis
         className={`item-${item.id}-inner`}
         style={{
           transition: innerStateProps?.transition ?? 'none',
-          ...(scale !== undefined ? { transform: `scale(${scale})` } : {}),
+          transform: `scale(${scale})`,
         }}
       >
         <RichTextWrapper isRichText={isRichText} transformOrigin={transformOrigin}>
@@ -121,31 +109,25 @@ export const CompoundChild: FC<ChildItemProps> = ({ item, sectionId, isParentVis
         </RichTextWrapper>
       </div>
       <JSXStyle id={id}>{`
-        ${getLayoutStyles(layouts, layoutValues, ([area, hidden, compoundSettings, layoutParams]) => {
-      const sizingAxis = parseSizing(layoutParams.sizing);
-      const scaleAnchor = area.scaleAnchor as AreaAnchor;
-      return (`
-            .item-${item.id}-inner {
-              width: 100%;
-              height: 100%;
-              transform-origin: ${ScaleAnchorMap[scaleAnchor]};
-              transform: scale(${area.scale});
-            }
-            .item-${item.id} {
-              position: absolute;
-              top: ${getCompoundTop(compoundSettings, area.top)};
-              left: ${getCompoundLeft(compoundSettings, area.left)};
-              transition: opacity 0.2s linear 0.1s;
-              display: ${hidden ? 'none' : 'block'};
-              width: ${sizingAxis.x === 'manual'
-          ? `${getCompoundWidth(compoundSettings, area.width, isRichText)}`
-          : 'max-content'};
-              height: ${sizingAxis.y === 'manual' ? `${getCompoundHeight(compoundSettings, area.height)}` : 'unset'};
-              transform: ${getCompoundTransform(compoundSettings)};
-              z-index: ${area.zIndex};
-            }
-          `);
-    })}
+        .item-${item.id}-inner {
+          width: 100%;
+          height: 100%;
+          transform-origin: ${ScaleAnchorMap[scaleAnchor]};
+          transform: scale(${item.area.scale});
+        }
+        .item-${item.id} {
+          position: absolute;
+          top: ${getCompoundTop(compoundSettings, item.area.top)};
+          left: ${getCompoundLeft(compoundSettings, item.area.left)};
+          transition: opacity 0.2s linear 0.1s;
+          display: ${item.hidden ? 'none' : 'block'};
+          width: ${sizingAxis.x === 'manual'
+            ? `${getCompoundWidth(compoundSettings, item.area.width, isRichText)}`
+            : 'max-content'};
+          height: ${sizingAxis.y === 'manual' ? `${getCompoundHeight(compoundSettings, item.area.height)}` : 'unset'};
+          transform: ${getCompoundTransform(compoundSettings)};
+          z-index: ${item.area.zIndex};
+        }
       `}
       </JSXStyle>
     </div>

@@ -55,202 +55,158 @@ const FXParams = z.object({
 
 const ImageItemSchema = ItemBaseSchema.extend({
   type: z.literal(ArticleItemType.Image),
-  commonParams: z.object({
-    pointerEvents
-  }).merge(FXParams),
-  sticky: z.record(
-    z.object({
-      from: z.number(),
-      to: z.number().optional()
-    }).nullable(),
-  ),
-  layoutParams: z.record(
-    z.object({
-      opacity: z.number().nonnegative(),
+  params: z.object({
+    pointerEvents,
+    opacity: z.number().nonnegative(),
       radius: z.number(),
       strokeWidth: z.number(),
       strokeFill: z.array(FillLayerSchema),
       blur: z.number(),
       isDraggable: z.boolean().optional()
-    })
-  ),
+  }).merge(FXParams),
+  sticky: z.object({
+      from: z.number(),
+      to: z.number().optional()
+    }).nullable(),
   state: z.record(MediaStateParamsSchema)
 }) satisfies ZodType<ImageItem>;
 
 const VideoItemSchema = ItemBaseSchema.extend({
   type: z.literal(ArticleItemType.Video),
-  commonParams: z.object({
+  params: z.object({
     coverUrl: z.string().nullable(),
-    pointerEvents
+    pointerEvents,
+    scrollPlayback: z.object({
+      from: z.number(),
+      to: z.number()
+    }).nullable(),
+    opacity: z.number().nonnegative(),
+    radius: z.number(),
+    strokeWidth: z.number(),
+    strokeFill: z.array(FillLayerSchema),
+    blur: z.number(),
+    isDraggable: z.boolean().optional(),
+    play: z.enum(['on-hover', 'on-click', 'auto']),
+    muted: z.boolean(),
+    controls: z.boolean(),
   }).merge(FXParams),
-  sticky: z.record(
-    z.object({
+  sticky: z.object({
       from: z.number(),
       to: z.number().optional()
     }).nullable(),
-  ),
-  layoutParams: z.record(
-    z.object({
-      scrollPlayback: z.object({
-        from: z.number(),
-        to: z.number()
-      }).nullable(),
-      opacity: z.number().nonnegative(),
-      radius: z.number(),
-      strokeWidth: z.number(),
-      strokeFill: z.array(FillLayerSchema),
-      blur: z.number(),
-      isDraggable: z.boolean().optional(),
-      play: z.enum(['on-hover', 'on-click', 'auto']),
-      muted: z.boolean(),
-      controls: z.boolean(),
-    })
-  ),
   state: z.record(MediaStateParamsSchema)
 }) satisfies ZodType<VideoItem>;
 
 const RectangleItemSchema = ItemBaseSchema.extend({
   type: z.literal(ArticleItemType.Rectangle),
-  commonParams: z.object({
+  params: z.object({
     ratioLock: z.boolean(),
-    pointerEvents
+    pointerEvents,
+    radius: z.number(),
+    strokeWidth: z.number(),
+    fill: z.array(FillLayerSchema),
+    strokeFill: z.array(FillLayerSchema),
+    blur: z.number(),
+    backdropBlur: z.number(),
+    blurMode: z.enum(['default', 'backdrop']),
+    isDraggable: z.boolean().optional()
   }),
-  sticky: z.record(
-    z.object({
+  sticky: z.object({
       from: z.number(),
       to: z.number().optional()
     }).nullable(),
-  ),
-  layoutParams: z.record(
-    z.object({
-      radius: z.number(),
-      strokeWidth: z.number(),
-      fill: z.array(FillLayerSchema),
-      strokeFill: z.array(FillLayerSchema),
-      blur: z.number(),
-      backdropBlur: z.number(),
-      blurMode: z.enum(['default', 'backdrop']),
-      isDraggable: z.boolean().optional()
-    })
-  ),
   state: z.record(RectangleStateParamsSchema)
 }) satisfies ZodType<RectangleItem>;
 
 const CustomItemSchema = ItemBaseSchema.extend({
   type: z.literal(ArticleItemType.Custom),
-  commonParams: z.object({
+  params: z.object({
     name: z.string(),
-    pointerEvents
+    pointerEvents,
+    isDraggable: z.boolean().optional()
   }),
-  sticky: z.record(
-    z.object({
+  sticky: z.object({
       from: z.number(),
       to: z.number().optional()
     }).nullable(),
-  ),
-  layoutParams: z.record(z.object({
-    isDraggable: z.boolean().optional()
-  })),
   state: z.record(CustomItemStateParamsSchema)
 }) satisfies ZodType<CustomItem>;
 
 const VimeoEmbedItemSchema = ItemBaseSchema.extend({
   type: z.literal(ArticleItemType.VimeoEmbed),
-  commonParams: z.object({
+  params: z.object({
     url: z.string().min(1),
     coverUrl: z.string().nullable(),
     ratioLock: z.boolean(),
-    pointerEvents
+    pointerEvents,
+    radius: z.number(),
+    blur: z.number(),
+    opacity: z.number().nonnegative(),
+    play: z.union([z.literal('on-hover'), z.literal('on-click'), z.literal('auto')]),
+    controls: z.boolean(),
+    loop: z.boolean(),
+    muted: z.boolean(),
+    pictureInPicture: z.boolean()
   }),
-  sticky: z.record(
-    z.object({
+  sticky: z.object({
       from: z.number(),
       to: z.number().optional()
     }).nullable(),
-  ),
-  layoutParams: z.record(
-    z.object({
-      radius: z.number(),
-      blur: z.number(),
-      opacity: z.number().nonnegative(),
-      play: z.union([z.literal('on-hover'), z.literal('on-click'), z.literal('auto')]),
-      controls: z.boolean(),
-      loop: z.boolean(),
-      muted: z.boolean(),
-      pictureInPicture: z.boolean()
-    })
-  ),
   state: z.record(EmbedStateParamsSchema)
 }) satisfies ZodType<VimeoEmbedItem>;
 
 const YoutubeEmbedItemSchema = ItemBaseSchema.extend({
   type: z.literal(ArticleItemType.YoutubeEmbed),
-  commonParams: z.object({
+  params: z.object({
     url: z.string().min(1),
     coverUrl: z.string().nullable(),
-    pointerEvents
+    pointerEvents,
+    radius: z.number(),
+    blur: z.number(),
+    opacity: z.number().nonnegative(),
+    play: z.enum(['on-hover', 'on-click', 'auto']),
+    controls: z.boolean(),
+    loop: z.boolean(),
   }),
-  sticky: z.record(
-    z.object({
+  sticky: z.object({
       from: z.number(),
       to: z.number().optional()
     }).nullable(),
-  ),
-  layoutParams: z.record(
-    z.object({
-      radius: z.number(),
-      blur: z.number(),
-      opacity: z.number().nonnegative(),
-      play: z.enum(['on-hover', 'on-click', 'auto']),
-      controls: z.boolean(),
-      loop: z.boolean(),
-    })
-  ),
   state: z.record(EmbedStateParamsSchema)
 }) satisfies ZodType<YoutubeEmbedItem>;
 
 const CodeEmbedItemSchema =  ItemBaseSchema.extend({
   type: z.literal(ArticleItemType.CodeEmbed),
-  commonParams: z.object({
+  params: z.object({
     html: z.string(),
     scale: z.boolean(),
     iframe: z.boolean(),
+    areaAnchor:  z.nativeEnum(AreaAnchor),
+    opacity: z.number().nonnegative(),
+    blur: z.number(),
+    isDraggable: z.boolean().optional(),
     pointerEvents
   }),
-  sticky: z.record(
-    z.object({
+  sticky: z.object({
       from: z.number(),
       to: z.number().optional()
     }).nullable(),
-  ),
-  layoutParams: z.record(
-    z.object({
-      areaAnchor:  z.nativeEnum(AreaAnchor),
-      opacity: z.number().nonnegative(),
-      blur: z.number(),
-      isDraggable: z.boolean().optional()
-    })
-  ),
   state: z.record(CodeEmbedStateParamsSchema)
 }) satisfies ZodType<CodeEmbedItem>;
 
 const ComponentItemSchema = ItemBaseSchema.extend({
   type: z.literal(ArticleItemType.Component),
-  commonParams: z.object({
+  params: z.object({
     componentId: z.string(),
-    content: z.any().optional()
-  }),
-  sticky: z.record(
-    z.object({
-      from: z.number(),
-      to: z.number().optional()
-    }).nullable(),
-  ),
-  layoutParams: z.record(z.object({
+    content: z.any().optional(),
     parameters: z.any().optional(),
     opacity: z.number().nonnegative(),
     blur: z.number()
-  })),
+  }),
+  sticky: z.object({
+      from: z.number(),
+      to: z.number().optional()
+    }).nullable(),
   state: z.record(ComponentStateParamsSchema)
 }) satisfies ZodType<ComponentItem>;
 
@@ -266,42 +222,31 @@ export const ItemSchema: ZodType<ItemAny> = z.lazy(() => z.discriminatedUnion('t
   ComponentItemSchema,
   ItemBaseSchema.extend({
     type: z.literal(ArticleItemType.Group),
-    commonParams: z.object({
-      pointerEvents
+    params: z.object({
+      pointerEvents,
+      opacity: z.number().nonnegative(),
+      blur: z.number()
     }),
     items: z.array(ItemSchema),
-    sticky: z.record(
-      z.object({
-        from: z.number(),
-        to: z.number().optional()
-      }).nullable(),
-    ),
-    layoutParams: z.record(
-      z.object({
-        opacity: z.number().nonnegative(),
-        blur: z.number()
-      })
-    ),
+    sticky: z.object({
+      from: z.number(),
+      to: z.number().optional()
+    }).nullable(),
     state: z.record(GroupStateParamsSchema)
   }),
   ItemBaseSchema.extend({
     type: z.literal(ArticleItemType.Compound),
-    commonParams: z.object({
+    params: z.object({
       overflow: z.enum(['hidden', 'visible']),
+      opacity: z.number().nonnegative(),
       pointerEvents,
     }),
     items: z.array(ItemSchema),
-    sticky: z.record(
+    sticky: 
       z.object({
         from: z.number(),
         to: z.number().optional()
       }).nullable(),
-    ),
-    layoutParams: z.record(
-      z.object({
-        opacity: z.number().nonnegative()
-      })
-    ),
     state: z.record(CompoundStateParamsSchema)
   })
 ]));

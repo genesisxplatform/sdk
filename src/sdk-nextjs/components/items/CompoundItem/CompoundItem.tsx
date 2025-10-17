@@ -9,15 +9,12 @@ import JSXStyle from 'styled-jsx/style';
 import { CompoundChild } from './CompoundChild';
 import { useCompoundItem } from './useCompoundItem';
 import { CompoundItem as TCompoundItem } from '../../../../sdk/types/article/Item';
-import { getLayoutStyles } from '../../../../utils';
 
 export const CompoundItem: FC<ItemProps<TCompoundItem>> = ({ item, sectionId, onResize, interactionCtrl, onVisibilityChange }) => {
   const id = useId();
   const { items } = item;
   const itemAngle = useItemAngle(item, sectionId);
-  const { layouts } = useCntrlContext();
   const { opacity: itemOpacity } = useCompoundItem(item, sectionId);
-  const layoutValues: Record<string, any>[] = [item.area, item.layoutParams];
   const [ref, setRef] = useState<HTMLDivElement | null>(null);
   useRegisterResize(ref, onResize);
   const stateParams = interactionCtrl?.getState<number>(['opacity', 'angle']);
@@ -34,8 +31,8 @@ export const CompoundItem: FC<ItemProps<TCompoundItem>> = ({ item, sectionId, on
           className={`compound-${item.id}`}
           ref={setRef}
           style={{
-            ...(opacity !== undefined ? { opacity } : {}),
-            ...(angle !== undefined ? { transform: `rotate(${angle}deg)` } : {}),
+            opacity,
+            transform: `rotate(${angle}deg)`,
             transition: stateParams?.transition ?? 'none'
           }}
         >
@@ -50,20 +47,14 @@ export const CompoundItem: FC<ItemProps<TCompoundItem>> = ({ item, sectionId, on
         </div>
         <JSXStyle id={id}>{`
         .compound-${item.id} {
-          overflow: ${item.commonParams.overflow};
+          overflow: ${item.params.overflow};
           position: absolute;
           width: 100%;
           height: 100%;
           box-sizing: border-box;
+          opacity: ${item.params.opacity};
+          transform: rotate(${item.area.angle}deg);
         }
-        ${getLayoutStyles(layouts, layoutValues, ([area, layoutParams]) => {
-          return (`
-            .compound-${item.id} {
-              opacity: ${layoutParams.opacity};
-              transform: rotate(${area.angle}deg);
-            }
-          `);
-        })}
       `}</JSXStyle>
       </>
     </LinkWrapper>

@@ -12,7 +12,7 @@ uniform vec2 u_cursor;
 varying vec2 v_texCoord;`;
 
 export function useItemFXData(item: ImageItem | VideoItem, sectionId: string): FXData {
-  const { fragmentShader: shaderBody, FXControls } = item.commonParams;
+  const { fragmentShader: shaderBody, FXControls } = item.params;
   const controls = FXControls ?? [];
   const controlsVariables = controls.map((c) => `uniform ${c.type} ${c.shaderParam};`)
     .join('\n');

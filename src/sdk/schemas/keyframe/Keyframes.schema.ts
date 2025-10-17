@@ -4,7 +4,6 @@ import { FillLayerSchema } from '../article/FillLayer.schema';
 
 const KeyframesBaseSchema = z.object({
   id: z.string().min(1),
-  layoutId: z.string().min(1),
   itemId: z.string().min(1),
   position: z.number()
 });

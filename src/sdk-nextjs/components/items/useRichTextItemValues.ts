@@ -1,66 +1,44 @@
 import { RichTextItem } from '../../../sdk/types/article/Item';
 import { KeyframeType } from '../../../sdk/types/keyframe/Keyframe';
 import { useKeyframeValue } from '../../common/useKeyframeValue';
-import { useLayoutContext } from '../useLayoutContext';
 
 const DEFAULT_COLOR = 'rgba(0, 0, 0, 1)';
 
 export const useRichTextItemValues = (item: RichTextItem, sectionId: string) => {
-  const layoutId = useLayoutContext();
-  const blur = useKeyframeValue(
+  const blur = useKeyframeValue<number>(
     item,
     KeyframeType.Blur,
-    (item, layoutId) => {
-      if (!layoutId) return;
-      const layoutParams = item.layoutParams[layoutId];
-      return 'blur' in layoutParams ? layoutParams.blur : 0;
-    },
-    (animator, scroll, value) => value !== undefined ? animator.getBlur({ blur: value }, scroll).blur : undefined,
-    sectionId,
-    [layoutId]
+    (item) => 'blur' in item.params ? item.params.blur : 0,
+    (animator, scroll, value) => animator.getBlur({ blur: value }, scroll).blur,
+    sectionId
   );
 
-  const letterSpacing = useKeyframeValue(
+  const letterSpacing = useKeyframeValue<number>(
     item,
     KeyframeType.LetterSpacing,
-    (item, layoutId) => {
-      if (!layoutId) return;
-      const layoutParams = item.layoutParams[layoutId];
-      return 'letterSpacing' in layoutParams ? layoutParams.letterSpacing : 0;
-    },
-    (animator, scroll, value) => value !== undefined ? animator.getLetterSpacing({ letterSpacing: value }, scroll).letterSpacing : undefined,
-    sectionId,
-    [layoutId]
+    (item) => 'letterSpacing' in item.params ? item.params.letterSpacing : 0,
+    (animator, scroll, value) => animator.getLetterSpacing({ letterSpacing: value }, scroll).letterSpacing,
+    sectionId
   );
 
-  const wordSpacing = useKeyframeValue(
+  const wordSpacing = useKeyframeValue<number>(
     item,
     KeyframeType.WordSpacing,
-    (item, layoutId) => {
-      if (!layoutId) return;
-      const layoutParams = item.layoutParams[layoutId];
-      return 'wordSpacing' in layoutParams ? layoutParams.wordSpacing : 0;
-    },
-    (animator, scroll, value) => value !== undefined ? animator.getWordSpacing({ wordSpacing: value }, scroll).wordSpacing : undefined,
-    sectionId,
-    [layoutId]
+    (item) => 'wordSpacing' in item.params ? item.params.wordSpacing : 0,
+    (animator, scroll, value) => animator.getWordSpacing({ wordSpacing: value }, scroll).wordSpacing,
+    sectionId
   );
 
-  const color = useKeyframeValue(
+  const color = useKeyframeValue<string>(
     item,
     KeyframeType.TextColor,
-    (item, layoutId) => {
-      if (!layoutId) return;
-      const layoutParams = item.layoutParams[layoutId];
-      return 'color' in layoutParams ? layoutParams.color : DEFAULT_COLOR;
-    },
-    (animator, scroll, value) => value ? animator.getTextColor({ color: value }, scroll).color : undefined,
-    sectionId,
-    [layoutId]
+    (item) => 'color' in item.params ? item.params.color : DEFAULT_COLOR,
+    (animator, scroll, value) => animator.getTextColor({ color: value }, scroll).color,
+    sectionId
   );
 
-  const fontSize = layoutId ? item.layoutParams[layoutId].fontSize : undefined;
-  const lineHeight = layoutId ? item.layoutParams[layoutId].lineHeight : undefined;
+  const fontSize = item.params.fontSize;
+  const lineHeight = item.params.lineHeight;
 
   return { blur, letterSpacing, wordSpacing, color, fontSize, lineHeight };
 };

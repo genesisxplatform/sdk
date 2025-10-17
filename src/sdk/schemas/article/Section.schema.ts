@@ -32,9 +32,8 @@ export const SectionSchema = z.object({
   id: z.string().min(1),
   items: z.array(ItemSchema),
   name: z.string().optional(),
-  height: z.record(SectionHeightSchema),
-  position: z.record(z.number()),
-  hidden: z.record(z.boolean()),
-  color: z.record(z.nullable(z.string())),
-  media: z.record(SectionMediaSchema).optional()
+  height: SectionHeightSchema,
+  hidden: z.boolean(),
+  color: z.string().nullable(),
+  media: SectionMediaSchema
 });

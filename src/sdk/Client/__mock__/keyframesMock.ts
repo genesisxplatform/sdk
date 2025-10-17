@@ -8,7 +8,6 @@ export const keyframesMock: KeyframeAny[] = [
     value: {
       color: 'black'
     },
-    itemId: 'itemId',
-    layoutId: 'layoutId'
+    itemId: 'itemId'
   }
 ];

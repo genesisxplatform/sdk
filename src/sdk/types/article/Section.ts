@@ -34,10 +34,9 @@ export type SectionMedia = SectionVideo | SectionImage;
 export interface Section {
   id: string;
   name?: string;
-  height: Record<string, SectionHeight>;
-  hidden: Record<string, boolean>;
+  height: SectionHeight;
+  hidden: boolean;
   items: ItemAny[];
-  position: Record<string, number>;
-  color: Record<string, string | null>;
-  media?: Record<string, SectionMedia>;
+  color: string | null;
+  media?: SectionMedia;
 }

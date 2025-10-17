@@ -1,21 +1,18 @@
 import React, { CSSProperties, FC, PropsWithChildren } from 'react';
-import { useCurrentLayout } from '../common/useCurrentLayout';
-import { LayoutContext } from '../provider/LayoutContext';
+import { useLayoutDeviation } from '../common/useLayoutDeviation';
 
 export const ArticleWrapper: FC<PropsWithChildren<{}>> = ({ children }) => {
-  const { layoutId, layoutDeviation } = useCurrentLayout();
+  const { layoutDeviation } = useLayoutDeviation();
   const layoutDeviationStyle = { '--layout-deviation': layoutDeviation } as CSSProperties;
 
   return (
-    <LayoutContext.Provider value={layoutId}>
-      <div
-        className="article-wrapper"
-        style={{
-          ...layoutDeviationStyle
-        }}
-      >
-        {children}
-      </div>
-    </LayoutContext.Provider>
+    <div
+      className="article-wrapper"
+      style={{
+        ...layoutDeviationStyle
+      }}
+    >
+      {children}
+    </div>
   );
 };

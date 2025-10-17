@@ -3,7 +3,6 @@ import { URL } from 'url';
 import { Meta } from '../types/project/Meta';
 import { Page, PageMeta } from '../types/project/Page';
 import { Project } from '../types/project/Project';
-import { Layout } from '../types/project/Layout';
 import { Article } from '../types/article/Article';
 import { KeyframeAny } from '../types/keyframe/Keyframe';
 import { ArticleSchema } from '../schemas/article/Article.schema';
@@ -57,15 +56,6 @@ export class Client {
     try {
       const { pages } = await this.fetchProject();
       return pages.map(p => p.slug);
-    } catch (e) {
-      throw e;
-    }
-  }
-
-  async getLayouts(): Promise<Layout[]> {
-    try {
-      const { layouts } = await this.fetchProject();
-      return layouts;
     } catch (e) {
       throw e;
     }

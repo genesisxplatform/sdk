@@ -10,103 +10,41 @@ export type ItemAny = Item<ArticleItemType>;
 export interface Item<T extends ArticleItemType> {
   id: string;
   type: T;
-  area: Record<LayoutIdentifier, ItemArea>;
-  hidden: Record<LayoutIdentifier, boolean>;
+  area: ItemArea;
+  hidden: boolean;
   link?: Link;
   items?: T extends (ArticleItemType.Group | ArticleItemType.Compound) ? ItemAny[] : never;
-  sticky: Record<LayoutIdentifier, StickyParams | null>;
-  compoundSettings?: Record<LayoutIdentifier, CompoundSettings>;
-  commonParams: ItemCommonParamsMap[T];
+  sticky: StickyParams | null;
+  compoundSettings?: CompoundSettings;
   state: ItemState<T>;
-  layoutParams: Record<LayoutIdentifier, ItemLayoutParamsMap[T]>;
+  params: ItemParamsMap[T];
 }
 
-export interface ItemCommonParamsMap {
-  [ArticleItemType.Image]: ImageCommonParams;
-  [ArticleItemType.Video]: VideoCommonParams;
-  [ArticleItemType.RichText]: RichTextCommonParams;
-  [ArticleItemType.Rectangle]: RectangleCommonParams;
-  [ArticleItemType.VimeoEmbed]: VimeoEmbedCommonParams;
-  [ArticleItemType.YoutubeEmbed]: YoutubeEmbedCommonParams;
-  [ArticleItemType.Custom]: CustomCommonParams;
-  [ArticleItemType.Group]: GroupCommonParams;
-  [ArticleItemType.Compound]: CompoundCommonParams;
-  [ArticleItemType.CodeEmbed]: CodeEmbedCommonParams
-  [ArticleItemType.Component]: ComponentCommonParams;
+export interface ItemParamsMap {
+  [ArticleItemType.Image]: ImageParams;
+  [ArticleItemType.Video]: VideoParams;
+  [ArticleItemType.RichText]: RichTextParams;
+  [ArticleItemType.Rectangle]: RectangleParams;
+  [ArticleItemType.VimeoEmbed]: VimeoEmbedParams;
+  [ArticleItemType.YoutubeEmbed]: YoutubeEmbedParams;
+  [ArticleItemType.Custom]: CustomParams;
+  [ArticleItemType.Group]: GroupParams;
+  [ArticleItemType.Compound]: CompoundParams;
+  [ArticleItemType.CodeEmbed]: CodeEmbedParams;
+  [ArticleItemType.Component]: ComponentParams;
 }
 
-export interface ItemLayoutParamsMap {
-  [ArticleItemType.Image]: ImageLayoutParams;
-  [ArticleItemType.Video]: VideoLayoutParams;
-  [ArticleItemType.RichText]: RichTextLayoutParams;
-  [ArticleItemType.Rectangle]: RectangleLayoutParams;
-  [ArticleItemType.VimeoEmbed]: VimeoEmbedLayoutParams;
-  [ArticleItemType.YoutubeEmbed]: YoutubeEmbedLayoutParams;
-  [ArticleItemType.Custom]: CustomLayoutParams;
-  [ArticleItemType.Group]: GroupLayoutParams;
-  [ArticleItemType.Compound]: CompoundLayoutParams;
-  [ArticleItemType.CodeEmbed]: CodeEmbedLayoutParams;
-  [ArticleItemType.Component]: ComponentLayoutParams;
-}
-
-interface CommonParamsBase {
+interface ParamsBase {
   pointerEvents?: 'never' | 'when_visible' | 'always';
 }
 
-interface MediaCommonParams extends CommonParamsBase {
+interface ImageParams extends MediaParams {}
+
+interface MediaParams extends ParamsBase {
   url: string;
   hasGLEffect?: boolean;
   fragmentShader: string | null;
   FXControls?: FXControlAny[];
-}
-
-interface VideoCommonParams extends MediaCommonParams {
-  coverUrl: string | null;
-}
-
-interface ImageCommonParams extends MediaCommonParams {}
-
-interface RichTextCommonParams extends CommonParamsBase {
-  text: string;
-  blocks?: RichTextBlock[];
-}
-
-interface RectangleCommonParams extends CommonParamsBase {
-  ratioLock: boolean;
-}
-
-interface CustomCommonParams extends CommonParamsBase {
-  name: string;
-}
-
-interface GroupCommonParams extends CommonParamsBase {}
-
-interface CompoundCommonParams extends CommonParamsBase {
-  overflow: 'hidden' | 'visible';
-}
-
-interface CodeEmbedCommonParams extends CommonParamsBase {
-  html: string;
-  scale: boolean;
-  iframe: boolean;
-}
-
-interface VimeoEmbedCommonParams extends CommonParamsBase {
-  url: string;
-  coverUrl: string | null;
-}
-
-interface YoutubeEmbedCommonParams extends CommonParamsBase {
-  url: string;
-  coverUrl: string | null;
-}
-
-interface ComponentCommonParams extends CommonParamsBase {
-  componentId: string;
-  content?: any;
-}
-
-interface MediaLayoutParams {
   opacity: number;
   radius: number;
   strokeWidth: number;
@@ -115,58 +53,17 @@ interface MediaLayoutParams {
   isDraggable?: boolean;
 }
 
-interface CustomLayoutParams {
-  isDraggable?: boolean;
-}
-
-interface GroupLayoutParams {
-  opacity: number;
-  blur: number;
-  isDraggable?: boolean;
-}
-
-interface CompoundLayoutParams {
-  opacity: number;
-  isDraggable?: boolean;
-}
-
-interface CodeEmbedLayoutParams {
-  areaAnchor: AreaAnchor;
-  opacity: number;
-  blur: number;
-  isDraggable?: boolean;
-}
-
-interface VimeoEmbedLayoutParams {
-  play: 'on-hover' | 'on-click' | 'auto';
-  controls: boolean;
-  loop: boolean;
-  muted: boolean;
-  pictureInPicture: boolean;
-  radius: number;
-  blur: number;
-  opacity: number;
-}
-
-interface YoutubeEmbedLayoutParams {
-  play: 'on-hover' | 'on-click' | 'auto';
-  controls: boolean;
-  loop: boolean;
-  radius: number;
-  blur: number;
-  opacity: number;
-}
-
-interface ImageLayoutParams extends MediaLayoutParams {}
-
-interface VideoLayoutParams extends MediaLayoutParams {
+interface VideoParams extends MediaParams {
+  coverUrl: string | null;
   play: 'on-hover' | 'on-click' | 'auto';
   muted: boolean;
   controls: boolean;
   scrollPlayback: ScrollPlaybackParams | null;
 }
 
-interface RichTextLayoutParams {
+interface RichTextParams extends ParamsBase {
+  text: string;
+  blocks?: RichTextBlock[];
   rangeStyles?: RichTextStyle[];
   textAlign: TextAlign;
   sizing: string;
@@ -185,7 +82,8 @@ interface RichTextLayoutParams {
   isDraggable?: boolean;
 }
 
-interface RectangleLayoutParams {
+interface RectangleParams extends ParamsBase {
+  ratioLock: boolean;
   radius: number;
   strokeWidth: number;
   fill: FillLayer[];
@@ -194,6 +92,65 @@ interface RectangleLayoutParams {
   backdropBlur: number;
   blurMode: 'default' | 'backdrop';
   isDraggable?: boolean;
+}
+
+interface CustomParams extends ParamsBase {
+  name: string;
+  isDraggable?: boolean;
+}
+
+interface GroupParams extends ParamsBase {
+  opacity: number;
+  blur: number;
+  isDraggable?: boolean;
+}
+
+interface CompoundParams extends ParamsBase {
+  overflow: 'hidden' | 'visible';
+  opacity: number;
+  isDraggable?: boolean;
+}
+
+interface CodeEmbedParams extends ParamsBase {
+  html: string;
+  scale: boolean;
+  iframe: boolean;
+  areaAnchor: AreaAnchor;
+  opacity: number;
+  blur: number;
+  isDraggable?: boolean;
+}
+
+interface VimeoEmbedParams extends ParamsBase {
+  url: string;
+  coverUrl: string | null;
+  play: 'on-hover' | 'on-click' | 'auto';
+  controls: boolean;
+  loop: boolean;
+  muted: boolean;
+  pictureInPicture: boolean;
+  radius: number;
+  blur: number;
+  opacity: number;
+}
+
+interface YoutubeEmbedParams extends ParamsBase {
+  url: string;
+  coverUrl: string | null;
+  play: 'on-hover' | 'on-click' | 'auto';
+  controls: boolean;
+  loop: boolean;
+  radius: number;
+  blur: number;
+  opacity: number;
+}
+
+interface ComponentParams extends ParamsBase {
+  componentId: string;
+  content?: any;
+  parameters?: any;
+  opacity: number;
+  blur: number;
 }
 
 export type FillLayer = SolidFillLayer | LinearGradientFillLayer | RadialGradientFillLayer | ConicGradientFillLayer | ImageLayer;
@@ -263,14 +220,6 @@ export interface StickyParams {
 export interface Link {
   url: string;
   target: string;
-}
-
-type LayoutIdentifier = string;
-
-interface ComponentLayoutParams {
-  parameters?: any;
-  opacity: number;
-  blur: number;
 }
 
 export type VideoItem = Item<ArticleItemType.Video>;

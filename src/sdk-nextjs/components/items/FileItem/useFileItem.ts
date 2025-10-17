@@ -1,7 +1,6 @@
-import { ImageItem, VideoItem } from '../../../../sdk/types/article/Item';
+import { FillLayer, ImageItem, VideoItem } from '../../../../sdk/types/article/Item';
 import { KeyframeType } from '../../../../sdk/types/keyframe/Keyframe';
 import { useKeyframeValue } from '../../../common/useKeyframeValue';
-import { useLayoutContext } from '../../useLayoutContext';
 
 const DEFAULT_FILL = [
   {
@@ -13,69 +12,43 @@ const DEFAULT_FILL = [
 ];
 
 export function useFileItem(item: ImageItem | VideoItem, sectionId: string) {
-  const layoutId = useLayoutContext();
-  const radius = useKeyframeValue(
+  const radius = useKeyframeValue<number>(
     item,
     KeyframeType.BorderRadius,
-    (item, layoutId) => {
-      if (!layoutId) return;
-      const layoutParams = item.layoutParams[layoutId];
-      return 'radius' in layoutParams ? layoutParams.radius : 0;
-    },
-    (animator, scroll, value) => value !== undefined ? animator.getRadius({ radius: value }, scroll).radius : undefined,
-    sectionId,
-    [layoutId]
+    (item) => 'radius' in item.params ? item.params.radius : 0,
+    (animator, scroll, value) => animator.getRadius({ radius: value }, scroll).radius,
+    sectionId
   );
-  const strokeWidth = useKeyframeValue(
+  const strokeWidth = useKeyframeValue<number>(
     item,
     KeyframeType.BorderWidth,
-    (item, layoutId) => {
-      if (!layoutId) return;
-      const layoutParams = item.layoutParams[layoutId];
-      return 'strokeWidth' in layoutParams ? layoutParams.strokeWidth : 0;
-    },
-    (animator, scroll, value) => value !== undefined ? animator.getBorderWidth({ borderWidth: value }, scroll).borderWidth : undefined,
-    sectionId,
-    [layoutId]
+    (item) => 'strokeWidth' in item.params ? item.params.strokeWidth : 0,
+    (animator, scroll, value) => animator.getBorderWidth({ borderWidth: value }, scroll).borderWidth,
+    sectionId
   );
 
-  const opacity = useKeyframeValue(
+  const opacity = useKeyframeValue<number>(
     item,
     KeyframeType.Opacity,
-    (item, layoutId) => {
-      if (!layoutId) return;
-      const layoutParams = item.layoutParams[layoutId];
-      return 'opacity' in layoutParams ? layoutParams.opacity : 1;
-    },
-    (animator, scroll, value) => value !== undefined ? animator.getOpacity({ opacity: value }, scroll).opacity : undefined,
-    sectionId,
-    [layoutId]
+    (item) => 'opacity' in item.params ? item.params.opacity : 1,
+    (animator, scroll, value) => animator.getOpacity({ opacity: value }, scroll).opacity,
+    sectionId
   );
 
-  const strokeFill = useKeyframeValue(
+  const strokeFill = useKeyframeValue<FillLayer[]>(
     item,
     KeyframeType.BorderFill,
-    (item, layoutId) => {
-      if (!layoutId) return;
-      const layoutParams = item.layoutParams[layoutId];
-      return 'strokeFill' in layoutParams ? layoutParams.strokeFill : DEFAULT_FILL;
-    },
-    (animator, scroll, value) => value ? animator.getBorderFill(value, scroll) : undefined,
-    sectionId,
-    [layoutId]
+    (item) => 'strokeFill' in item.params ? item.params.strokeFill : DEFAULT_FILL,
+    (animator, scroll, value) => animator.getBorderFill(value, scroll),
+    sectionId
   );
 
-  const blur = useKeyframeValue(
+  const blur = useKeyframeValue<number>(
     item,
     KeyframeType.Blur,
-    (item, layoutId) => {
-      if (!layoutId) return;
-      const layoutParams = item.layoutParams[layoutId];
-      return 'blur' in layoutParams ? layoutParams.blur : 0;
-    },
-    (animator, scroll, value) => value !== undefined ? animator.getBlur({ blur: value }, scroll).blur : undefined,
-    sectionId,
-    [layoutId]
+    (item) => 'blur' in item.params ? item.params.blur : 0,
+    (animator, scroll, value) => animator.getBlur({ blur: value }, scroll).blur,
+    sectionId
   );
 
   return { radius, strokeWidth, opacity, strokeFill, blur };

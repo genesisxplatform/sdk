@@ -9,28 +9,23 @@ import { useRegisterResize } from '../../../common/useRegisterResize';
 import { getStyleFromItemStateAndParams } from '../../../utils/getStyleFromItemStateAndParams';
 import { useEmbedVideoItem } from './useEmbedVideoItem';
 import { LinkWrapper } from '../LinkWrapper';
-import { useLayoutContext } from '../../useLayoutContext';
 import { VimeoEmbedItem as TVimeoEmbedItem } from '../../../../sdk/types/article/Item';
-import { getLayoutStyles } from '../../../../utils';
 
 export const VimeoEmbedItem: FC<ItemProps<TVimeoEmbedItem>> = ({ item, sectionId, onResize, interactionCtrl, onVisibilityChange }) => {
   const id = useId();
-  const { layouts } = useCntrlContext();
   const {
     radius: itemRadius,
     blur: itemBlur,
     opacity: itemOpacity
   } = useEmbedVideoItem(item, sectionId);
-  const layoutId = useLayoutContext();
   const [iframeRef, setIframeRef] = useState<HTMLIFrameElement | null>(null);
   const vimeoPlayer = useMemo(() => iframeRef ? new Player(iframeRef) : undefined, [iframeRef]);
   const itemAngle = useItemAngle(item, sectionId);
-  const { url } = item.commonParams;
-  const layoutParams = layoutId ? item.layoutParams[layoutId] : null;
+  const { url } = item.params;
+  const params = item.params;
   const [ref, setRef] = useState<HTMLDivElement | null>(null);
   const [imgRef, setImgRef] = useState<HTMLImageElement | null>(null);
   const [isCoverVisible, setIsCoverVisible] = useState(false);
-  const layoutValues: Record<string, any>[] = [item.area, item.layoutParams];
   const wrapperStateParams = interactionCtrl?.getState<number>(['angle', 'blur', 'opacity']);
   const frameStateParams = interactionCtrl?.getState<number>(['radius']);
   const angle = getStyleFromItemStateAndParams(wrapperStateParams?.styles?.angle, itemAngle);
@@ -39,23 +34,23 @@ export const VimeoEmbedItem: FC<ItemProps<TVimeoEmbedItem>> = ({ item, sectionId
   const radius = getStyleFromItemStateAndParams(frameStateParams?.styles?.radius, itemRadius);
   useRegisterResize(ref, onResize);
   const validUrl = useMemo(() => {
-    if (!layoutParams) return url;
+    if (!params) return url;
     const validURL = new URL(url);
-    validURL.searchParams.append('controls', String(layoutParams.controls));
-    validURL.searchParams.append('autoplay', String(layoutParams.play === 'auto'));
-    validURL.searchParams.append('muted', String(layoutParams.muted));
-    validURL.searchParams.append('loop', String(layoutParams.loop));
-    validURL.searchParams.append('pip', String(layoutParams.pictureInPicture));
+    validURL.searchParams.append('controls', String(params.controls));
+    validURL.searchParams.append('autoplay', String(params.play === 'auto'));
+    validURL.searchParams.append('muted', String(params.muted));
+    validURL.searchParams.append('loop', String(params.loop));
+    validURL.searchParams.append('pip', String(params.pictureInPicture));
     validURL.searchParams.append('title', '0');
     validURL.searchParams.append('byline', '0');
     validURL.searchParams.append('portrait', '0');
     validURL.searchParams.append('autopause', 'false');
     return validURL.href;
-  }, [url, layoutParams]);
+  }, [url, params]);
 
   useEffect(() => {
-    if (!vimeoPlayer || !imgRef || !layoutParams) return;
-    if (layoutParams.play === 'on-click') {
+    if (!vimeoPlayer || !imgRef) return;
+    if (params.play === 'on-click') {
       setIsCoverVisible(true);
     }
     vimeoPlayer.on('pause', (e) => {
@@ -66,7 +61,7 @@ export const VimeoEmbedItem: FC<ItemProps<TVimeoEmbedItem>> = ({ item, sectionId
     vimeoPlayer.on('ended', () => {
       setIsCoverVisible(true);
     });
-  }, [vimeoPlayer, imgRef, layoutParams]);
+  }, [vimeoPlayer, imgRef, params]);
 
   const handleClick = async () => {
     if (!vimeoPlayer) return;
@@ -114,26 +109,26 @@ export const VimeoEmbedItem: FC<ItemProps<TVimeoEmbedItem>> = ({ item, sectionId
         className={`embed-video-wrapper-${item.id}`}
         ref={setRef}
         style={{
-          ...(opacity !== undefined ? { opacity } : {}),
-          ...(angle !== undefined ? { transform: `rotate(${angle}deg)` } : {}),
+          opacity,
+          transform: `rotate(${angle}deg)`,
           ...(blur !== undefined ? { filter: `blur(${blur * 100}vw)` } : {}),
           willChange: blur !== 0 && blur !== undefined ? 'transform' : 'unset',
           transition: wrapperStateParams?.transition ?? 'none'
         }}
         onMouseEnter={() => {
-          if (!vimeoPlayer || !layoutParams || layoutParams.play !== 'on-hover') return;
+          if (!vimeoPlayer || params.play !== 'on-hover') return;
           vimeoPlayer.play();
         }}
         onMouseLeave={() => {
-          if (!vimeoPlayer || !layoutParams || layoutParams.play !== 'on-hover') return;
+          if (!vimeoPlayer || params.play !== 'on-hover') return;
           vimeoPlayer.pause();
         }}
       >
-        {item.commonParams.coverUrl && (
+        {params.coverUrl && (
           <img
             ref={setImgRef}
             onClick={() => onCoverClick()}
-            src={item.commonParams.coverUrl ?? ''}
+            src={params.coverUrl ?? ''}
             style={{
               display: isCoverVisible ? 'block' : 'none',
               cursor: 'pointer',
@@ -148,7 +143,7 @@ export const VimeoEmbedItem: FC<ItemProps<TVimeoEmbedItem>> = ({ item, sectionId
           />
         )}
         {/* ↓ This is necessary to track clicks on an iframe. */}
-        {layoutParams && (!layoutParams.controls && (layoutParams.play === 'on-click' || layoutParams.play === 'auto')) && (
+        {params && (!params.controls && (params.play === 'on-click' || params.play === 'auto')) && (
           <div
             onClick={handleClick}
             style={{
@@ -167,7 +162,7 @@ export const VimeoEmbedItem: FC<ItemProps<TVimeoEmbedItem>> = ({ item, sectionId
           allow="autoplay; fullscreen; picture-in-picture;"
           allowFullScreen
           style={{
-            ...(radius !== undefined ? { borderRadius: `${radius * 100}vw` } : {}),
+            borderRadius: `${radius * 100}vw`,
             transition: frameStateParams?.transition ?? 'none'
           }}
         />
@@ -178,6 +173,10 @@ export const VimeoEmbedItem: FC<ItemProps<TVimeoEmbedItem>> = ({ item, sectionId
         position: absolute;
         width: 100%;
         height: 100%;
+        opacity: ${params.opacity};
+        transform: rotate(${item.area.angle}deg);
+        filter: ${params.blur !== 0 ? `blur(${params.blur * 100}vw)` : 'unset'};
+        ${params.blur !== 0 ? 'will-change: transform;' : ''}
       }
       .embed-video {
         width: 100%;
@@ -186,19 +185,9 @@ export const VimeoEmbedItem: FC<ItemProps<TVimeoEmbedItem>> = ({ item, sectionId
         border: none;
         overflow: hidden;
       }
-      ${getLayoutStyles(layouts, layoutValues, ([area, layoutParams]) => {
-      return (`
-          .embed-video-wrapper-${item.id} {
-            opacity: ${layoutParams.opacity};
-            transform: rotate(${area.angle}deg);
-            filter: ${layoutParams.blur !== 0 ? `blur(${layoutParams.blur * 100}vw)` : 'unset'};
-            ${layoutParams.blur !== 0 ? 'will-change: transform;' : ''}
-          }
-          .embed-video-wrapper-${item.id} .embed-video {
-            border-radius: ${layoutParams.radius * 100}vw;
-          }
-        `);
-    })}
+      .embed-video-wrapper-${item.id} .embed-video {
+        border-radius: ${params.radius * 100}vw;
+      }
     `}
       </JSXStyle>
     </LinkWrapper>

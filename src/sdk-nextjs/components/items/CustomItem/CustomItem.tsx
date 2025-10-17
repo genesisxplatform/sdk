@@ -5,14 +5,11 @@ import JSXStyle from 'styled-jsx/style';
 import { useRegisterResize } from '../../../common/useRegisterResize';
 import { useItemAngle } from '../useItemAngle';
 import { CustomItem as TCustomItem } from '../../../../sdk/types/article/Item';
-import { getLayoutStyles } from '../../../../utils';
 
 export const CustomItem: FC<ItemProps<TCustomItem>> = ({ item, onResize, sectionId, interactionCtrl }) => {
   const sdk = useCntrlContext();
-  const { layouts } = useCntrlContext();
   const itemAngle = useItemAngle(item, sectionId);
-  const component = sdk.customItems.get(item.commonParams.name);
-  const layoutValues: Record<string, any>[] = [item.area];
+  const component = sdk.customItems.get(item.params.name);
   const [ref, setRef] = useState<HTMLDivElement | null>(null);
   useRegisterResize(ref, onResize);
   const stateParams = interactionCtrl?.getState<number>(['angle']);
@@ -31,18 +28,16 @@ export const CustomItem: FC<ItemProps<TCustomItem>> = ({ item, onResize, section
         {component({})}
       </div>
       <JSXStyle id={item.id}>
-        {`${getLayoutStyles(layouts, layoutValues, ([area]) => {
-          return (`
-            .custom-component-${item.id} {
-              transform: rotate(${area.angle}deg);
-              height: 100%;
-              width: 100%;
-              position: absolute;
-              left: 0;
-              top: 0;
-            }
-          `);
-        })}`}
+        {`
+          .custom-component-${item.id} {
+            transform: rotate(${item.area.angle}deg);
+            height: 100%;
+            width: 100%;
+            position: absolute;
+            left: 0;
+            top: 0;
+          }
+        `}
       </JSXStyle>
     </>
   );

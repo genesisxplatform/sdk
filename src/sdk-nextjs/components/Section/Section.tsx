@@ -4,12 +4,10 @@ import JSXStyle from 'styled-jsx/style';
 import { useCntrlContext } from '../../provider/useCntrlContext';
 import { useSectionRegistry } from '../../utils/ArticleRectManager/useSectionRegistry';
 import { CntrlColor } from '@cntrl-site/color';
-import { useLayoutContext } from '../useLayoutContext';
 import { SectionVideo } from './SectionVideo';
 import { SectionImage } from './SectionImage';
 import { isOverflowClipSupported } from '../../utils/checkOverflowClipSupport';
 import { SectionHeight, SectionHeightMode, Section as TSection } from '../../../sdk/types/article/Section';
-import { getLayoutMediaQuery, getLayoutStyles } from '../../../utils';
 
 type SectionChild = ReactElement<any, any>;
 const DEFAULT_COLOR = 'rgba(0, 0, 0, 0)';
@@ -23,38 +21,20 @@ interface Props {
 export const Section: FC<Props> = ({ section, data, children }) => {
   const id = useId();
   const sectionRef = useRef<HTMLDivElement | null>(null);
-  const { layouts, customSections } = useCntrlContext();
-  const layout = useLayoutContext();
-  const layoutValues: Record<string, any>[] = [section.height, section.color, section.media ?? {}];
+  const { customSections } = useCntrlContext();
+  const { height, color, hidden } = section;
   const SectionComponent = section.name ? customSections.getComponent(section.name) : undefined;
   useSectionRegistry(section.id, sectionRef.current);
-  const sectionHeight = layout && section.height[layout] ? section.height[layout] : undefined;
-  const layoutMedia = layout && section.media && section.media[layout] ? section.media[layout] : undefined;
 
   const media = useMemo(() => {
-    if (layoutMedia && !isOverflowClipSupported()) {
+    if (section.media && !isOverflowClipSupported()) {
       return {
-        ...layoutMedia,
+        ...section.media,
         position: 'local'
       };
     }
-    return layoutMedia;
-  }, [layoutMedia]);
-
-  const getSectionVisibilityStyles = () => {
-    return layouts
-      .sort((a, b) => a.startsWith - b.startsWith)
-      .reduce((acc, layout) => {
-        const isHidden = section.hidden[layout.id];
-        return `
-          ${acc}
-          ${getLayoutMediaQuery(layout.id, layouts)} {
-            .section-${section.id} {
-              display: ${isHidden ? 'none' : 'block'};
-            }
-          }`;
-      }, '');
-  };
+    return section.media;
+  }, [section.media]);
 
   if (SectionComponent) return <div ref={sectionRef}><SectionComponent data={data}>{children}</SectionComponent></div>;
 
@@ -72,7 +52,7 @@ export const Section: FC<Props> = ({ section, data, children }) => {
               className={`section-background-wrapper-${section.id}`}
               style={{
                 transform: media.position === 'fixed' ? 'translateY(-100vh)' : 'unset',
-                ...(sectionHeight && { height: media.position === 'fixed' ? `calc(${getSectionHeight(sectionHeight)} + 200vh)` : getSectionHeight(sectionHeight) })
+                height: media.position === 'fixed' ? `calc(${getSectionHeight(height)} + 200vh)` : getSectionHeight(height)
               }}
             >
               {media.type === 'video' && (
@@ -87,11 +67,10 @@ export const Section: FC<Props> = ({ section, data, children }) => {
         {children}
       </div>
       <JSXStyle id={id}>{`
-      ${
-    getLayoutStyles(layouts, layoutValues, ([height, color, media]) => (`
          .section-${section.id} {
             height: ${getSectionHeight(height)};
             position: relative;
+            display: ${hidden ? 'none' : 'block'};
             background-color: ${CntrlColor.parse(color ?? DEFAULT_COLOR).fmt('rgba')};
          }
          .section-background-overlay-${section.id} {
@@ -106,11 +85,8 @@ export const Section: FC<Props> = ({ section, data, children }) => {
             height: ${media?.position === 'fixed' ? `calc(${getSectionHeight(height)} + 200vh)` : getSectionHeight(height)};
             width: 100%;
          }
-        `
-    ))
-    }
-      ${getSectionVisibilityStyles()}
-    `}</JSXStyle>
+      `}
+    </JSXStyle>
     </>
   );
 };

@@ -1,11 +1,9 @@
 import { Article } from '../../sdk/types/article/Article';
 import { Section, SectionHeight } from '../../sdk/types/article/Section';
-import { Layout } from '../../sdk/types/project/Layout';
 import { Project } from '../../sdk/types/project/Project';
 import { CustomItemRegistry } from './CustomItemRegistry';
 import { CustomSectionRegistry } from './CustomSectionRegistry';
-import { Component as TComponent } from '../../sdk/types/component/Component';
-import { components } from '@cntrl-site/components';
+import { components, Component as TComponent } from '@cntrl-site/components';
 
 interface SdkContextInitProps {
   project: Project;
@@ -13,9 +11,9 @@ interface SdkContextInitProps {
 }
 
 export class CntrlSdkContext {
-  private _layouts: Layout[] = [];
+  private _exemplary: number = 0;
   private _fonts?: Project['fonts'] = undefined;
-  private sectionHeightMap: Map<string, Record<string, SectionHeight>> = new Map();
+  private sectionHeightMap: Map<string, SectionHeight> = new Map();
   private components: Map<string, TComponent> = new Map();
 
   constructor(
@@ -38,14 +36,14 @@ export class CntrlSdkContext {
   }
 
   init({ project, article }: SdkContextInitProps) {
-    this.setLayouts(project.layouts);
     this.setComponents(components);
+    this.setExemplary(project.exemplary);
     this.setFonts(project.fonts);
     this.setSectionsHeight(article.sections);
   }
 
-  setLayouts(layouts: Layout[]) {
-    this._layouts = layouts;
+  private setExemplary(exemplary: number) {
+    this._exemplary = exemplary;
   }
 
   private setComponents(components: TComponent[]) {
@@ -69,8 +67,8 @@ export class CntrlSdkContext {
     return sectionHeightData;
   }
 
-  get layouts(): Layout[] {
-    return this._layouts;
+  get exemplary(): number {
+    return this._exemplary;
   }
 
   get fonts(): Project['fonts'] | undefined {

@@ -6,36 +6,22 @@ import { useRegisterResize } from '../../../common/useRegisterResize';
 import { useItemAngle } from '../useItemAngle';
 import { LinkWrapper } from '../LinkWrapper';
 import { useCodeEmbedItem } from './useCodeEmbedItem';
-import { AreaAnchor } from '../../../../sdk/types/article/ItemArea';
 import { CodeEmbedItem as TCodeEmbedItem } from '../../../../sdk/types/article/Item';
-import { getLayoutStyles } from '../../../../utils';
 import { FontFaceGenerator } from '../../../../sdk/FontFaceGenerator/FontFaceGenerator';
-
-const stylesMap = {
-  [AreaAnchor.TopLeft]: {},
-  [AreaAnchor.TopCenter]: { justifyContent: 'center' },
-  [AreaAnchor.TopRight]: { justifyContent: 'flex-end' },
-  [AreaAnchor.MiddleLeft]: { alignItems: 'center' },
-  [AreaAnchor.MiddleCenter]: { justifyContent: 'center', alignItems: 'center' },
-  [AreaAnchor.MiddleRight]: { justifyContent: 'flex-end', alignItems: 'center' },
-  [AreaAnchor.BottomLeft]: { alignItems: 'flex-end' },
-  [AreaAnchor.BottomCenter]: { justifyContent: 'center', alignItems: 'flex-end' },
-  [AreaAnchor.BottomRight]: { justifyContent: 'flex-end', alignItems: 'flex-end' }
-};
+import { useExemplary } from '../../../common/useExemplary';
 
 export const CodeEmbedItem: FC<ItemProps<TCodeEmbedItem>> = ({ item, sectionId, onResize, interactionCtrl, onVisibilityChange }) => {
   const id = useId();
-  const { layouts, fonts } = useCntrlContext();
+  const { fonts } = useCntrlContext();
   const fontGoogleTags = fonts?.google;
   const fontAdobeTags = fonts?.adobe;
   const fontCustomTags = new FontFaceGenerator(fonts?.custom ?? []).generate();
-  const { anchor, blur: itemBlur, opacity: itemOpacity } = useCodeEmbedItem(item, sectionId);
+  const { blur: itemBlur, opacity: itemOpacity } = useCodeEmbedItem(item, sectionId);
   const itemAngle = useItemAngle(item, sectionId);
-  const html = decodeBase64(item.commonParams.html);
+  const html = decodeBase64(item.params.html);
+  const exemplary = useExemplary();
   const [ref, setRef] = useState<HTMLDivElement | null>(null);
   useRegisterResize(ref, onResize);
-  const pos = stylesMap[anchor];
-  const layoutValues: Record<string, any>[] = [item.area, item.layoutParams];
   const stateParams = interactionCtrl?.getState<number>(['angle', 'blur', 'opacity']);
   const blur = (stateParams?.styles?.blur ?? itemBlur) as number;
   const opacity = stateParams?.styles?.opacity ?? itemOpacity;
@@ -73,7 +59,7 @@ export const CodeEmbedItem: FC<ItemProps<TCodeEmbedItem>> = ({ item, sectionId, 
       ${html}
     `;
     iframe.srcdoc = htmlWithStyles;
-  }, [html, item.commonParams.iframe, ref]);
+  }, [html, item.params.iframe, ref]);
 
   const isInteractive = opacity !== 0;
   useEffect(() => {
@@ -85,27 +71,24 @@ export const CodeEmbedItem: FC<ItemProps<TCodeEmbedItem>> = ({ item, sectionId, 
       <div
         className={`embed-wrapper-${item.id}`}
         style={{
-          ...(angle !== undefined ? { transform: `rotate(${angle}deg)` } : {}),
+          transform: `rotate(${angle}deg)`,
           ...(blur !== undefined ? { filter: `blur(${blur * 100}vw)` } : {}),
-          ...(opacity !== undefined ? { opacity } : {}),
           willChange: blur !== 0 && blur !== undefined ? 'transform' : 'unset',
           transition: stateParams?.transition ?? 'none'
         }}
         ref={setRef}
       >
-        {item.commonParams.iframe ? (
+        {item.params.iframe ? (
           <iframe
             data-embed={item.id}
             className={`embed-${item.id}`}
             style={{
-              ...pos,
               border: 'unset'
             }}
           />
         ) : (
           <div
             className={`embed-${item.id}`}
-            style={{ ...pos }}
             dangerouslySetInnerHTML={{ __html: html }}
           />
         )}
@@ -115,27 +98,19 @@ export const CodeEmbedItem: FC<ItemProps<TCodeEmbedItem>> = ({ item, sectionId, 
         position: absolute;
         width: 100%;
         height: 100%;
+        opacity: ${item.params.opacity};
+        transform: rotate(${item.area.angle}deg);
+        filter: ${item.params.blur !== 0 ? `blur(${item.params.blur * 100}vw)` : 'unset'};
+        ${item.params.blur !== 0 ? 'will-change: transform;' : ''}
       }
       .embed-${item.id} {
-        transform: ${item.commonParams.scale ? 'scale(var(--layout-deviation))' : 'none'};
+        transform: ${item.params.scale ? 'scale(var(--layout-deviation))' : 'none'};
         transform-origin: top left;
         z-index: 1;
         border: none;
+        width: ${item.params.scale ? `${item.area.width * exemplary}px` : '100%'};
+        height: ${item.params.scale ? `${item.area.height * exemplary}px` : '100%'};
       }
-      ${getLayoutStyles(layouts, layoutValues, ([area, layoutParams], exemplary) => {
-      return (`
-          .embed-wrapper-${item.id} {
-            opacity: ${layoutParams.opacity};
-            transform: rotate(${area.angle}deg);
-            filter: ${layoutParams.blur !== 0 ? `blur(${layoutParams.blur * 100}vw)` : 'unset'};
-            ${layoutParams.blur !== 0 ? 'will-change: transform;' : ''}
-          }
-          .embed-${item.id} {
-            width: ${item.commonParams.scale ? `${area.width * exemplary}px` : '100%'};
-            height: ${item.commonParams.scale ? `${area.height * exemplary}px` : '100%'};
-          }
-        `);
-    })}
     `}</JSXStyle>
     </LinkWrapper>
   );

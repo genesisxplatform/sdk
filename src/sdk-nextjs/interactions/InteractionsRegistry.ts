@@ -14,9 +14,9 @@ export class InteractionsRegistry implements InteractionsRegistryPort {
   private itemsStages: ItemStages;
   private activeStateIdInteractionIdMap: Record<StateId, InteractionId>;
 
-  constructor(article: Article, layoutId: string) {
+  constructor(article: Article) {
     this.items = this.unpackItems(article);
-    const interactions = article.interactions[layoutId] ?? [];
+    const interactions = article.interactions ?? [];
     const activeStatesIds = interactions.reduce<StateId[]>((map, inter) => {
       const activeStateId = inter.states.find((state) => state.id !== inter.startStateId)?.id;
       if (!activeStateId) {

@@ -1,9 +1,7 @@
 import React, { ReactElement, ReactNode } from 'react';
 import { CntrlColor } from '@cntrl-site/color';
 import { TextTransform, VerticalAlign, RichTextStyle, RichTextEntity } from '../../../sdk/types/article/RichText';
-import { Layout } from '../../../sdk/types/project/Layout';
 import { RichTextItem } from '../../../sdk/types/article/Item';
-import { getLayoutMediaQuery } from '../../../utils';
 import { LinkWrapper } from '../../components/items/LinkWrapper';
 import { getFontFamilyValue } from '../getFontFamilyValue';
 
@@ -35,19 +33,12 @@ export const FontStyles: Record<string, Record<string, string>> = {
 export class RichTextConverter {
   toHtml(
     richText: RichTextItem,
-    layouts: Layout[]
+    exemplary: number
   ): [ReactNode[], string] {
-    const { text, blocks = [] } = richText.commonParams;
+    const { text, blocks = [] } = richText.params;
     const root: ReactElement[] = [];
-    const styleRules = layouts.reduce<Record<string, string[]>>((rec, layout) => {
-      rec[layout.id] = [];
-      return rec;
-    }, {});
-    const currentLineHeight = layouts.reduce<Record<string, string | undefined>>((rec, layout) => {
-      const styles = richText.layoutParams[layout.id].rangeStyles;
-      rec[layout.id] = styles?.find(s => s.style === 'LINEHEIGHT')?.value;
-      return rec;
-    }, {});
+    const styleRules: string[] = [];
+    let currentLineHeight = richText.params.rangeStyles?.find(s => s.style === 'LINEHEIGHT')?.value;
 
     for (let blockIndex = 0; blockIndex < blocks.length; blockIndex++) {
       const block = blocks[blockIndex];
@@ -56,44 +47,34 @@ export class RichTextConverter {
       if (content.length === 1) {
         const id = `rt_${richText.id}_br_${blockIndex}`;
         root.push(<div key={id} className={id}><br /></div>);
-        layouts.forEach(l => {
-          const lhForLayout = currentLineHeight[l.id];
-          if (lhForLayout === undefined) return;
-          const lh = RichTextConverter.fromRangeStylesToInline({
-            name: 'LINEHEIGHT',
-            value: lhForLayout
-          }, l.exemplary);
-          styleRules[l.id].push(`.rt_${richText.id}_br_${blockIndex} {${lh}}`);
-        });
+        if (currentLineHeight === undefined) continue;
+        const lh = RichTextConverter.fromRangeStylesToInline({
+          name: 'LINEHEIGHT',
+          value: currentLineHeight
+        }, exemplary);
+        styleRules.push(`.rt_${richText.id}_br_${blockIndex} {${lh}}`);
         continue;
       }
-      const newStylesGroup = layouts.map(({ id: layoutId }) => {
-        const params = richText.layoutParams[layoutId];
-        const styles = params.rangeStyles!
+
+      const styles = richText.params.rangeStyles!
           .filter(s => s.start >= block.start && s.end <= block.end)
           .map(s => ({ ...s, start: s.start - block.start, end: s.end - block.start }));
-        return ({
-          layout: layoutId,
-          styles: this.normalizeStyles(styles, entities)
-        });
-      });
-      const sameLayouts = groupBy(newStylesGroup, (item) => this.serializeRanges(item.styles ?? []));
-      for (const group of Object.values(sameLayouts)) {
-        const blockClass = `rt_${richText.id}-b${blockIndex}_${layouts.map(l => group.some(g => g.layout === l.id) ? '1' : '0').join('')}`;
+      const newStylesGroup = this.normalizeStyles(styles, entities)
+      const groups = groupBy(newStylesGroup, (item) => this.serializeRanges(item ?? []));
+      for (const group of Object.values(groups)) {
+        const blockClass = `rt_${richText.id}-b${blockIndex}`;
         const kids: ReactNode[] = [];
-        layouts.forEach(l => {
-          const ta = richText.layoutParams[l.id].textAlign;
-          styleRules[l.id].push(`
+          const ta = richText.params.textAlign;
+          styleRules.push(`
             .${blockClass} {
-              display: ${group.some(g => g.layout === l.id) ? 'block' : 'none'};
+              display: 'block';
               text-align: ${ta};
               white-space: pre-wrap;
               overflow-wrap: break-word;
             }
           `);
-        });
         const item = group[0];
-        const entitiesGroups = this.groupEntities(entities, item.styles) ?? [];
+        const entitiesGroups = this.groupEntities(entities, item) ?? [];
         let offset = 0;
         for (const entity of entitiesGroups) {
           const entityKids: ReactNode[] = [];
@@ -125,24 +106,23 @@ export class RichTextConverter {
         if (offset < getSymbolsCount(content)) {
           kids.push(sliceSymbols(content, offset));
         }
-        for (const item of group) {
-          const { exemplary } = layouts.find(l => l.id === item.layout)!;
-          const entitiesGroups = this.groupEntities(entities, item.styles) ?? [];
+        for (const styles of group) {
+          const entitiesGroups = this.groupEntities(entities, styles) ?? [];
           for (const entitiesGroup of entitiesGroups) {
             if (!entitiesGroup.stylesGroup) continue;
             for (const styleGroup of entitiesGroup.stylesGroup) {
               const lineHeight = styleGroup.styles.find(s => s.name === 'LINEHEIGHT');
               const color = styleGroup.styles.find(s => s.name === 'COLOR');
               if (lineHeight?.value) {
-                currentLineHeight[item.layout] = lineHeight.value;
+                currentLineHeight = lineHeight.value;
               }
-              styleRules[item.layout].push(`
+              styleRules.push(`
                 .${blockClass} .s-${styleGroup.start}-${styleGroup.end} {
                   ${styleGroup.styles.map(s => RichTextConverter.fromRangeStylesToInline(s, exemplary)).join('\n')}
                 }
               `);
               if (color) {
-                styleRules[item.layout].push(`
+                styleRules.push(`
                 @supports not (color: oklch(42% 0.3 90 / 1)) {
                   .${blockClass} .s-${styleGroup.start}-${styleGroup.end} {
                     color: ${CntrlColor.parse(getResolvedValue(color.value, 'COLOR')!).fmt('rgba')};
@@ -156,11 +136,9 @@ export class RichTextConverter {
         root.push(<div key={blockClass} className={blockClass}>{kids}</div>);
       }
     }
-    const styles = layouts.map(l => `
-      ${getLayoutMediaQuery(l.id, layouts)} {
-        ${styleRules[l.id].join('\n')}
-      }
-    `).join('\n');
+    const styles = `
+      ${styleRules.join('\n')}
+    `;
     return [
       root,
       styles
@@ -278,15 +256,13 @@ export class RichTextConverter {
   }
 }
 
-function groupBy<I>(items: I[], getKey: (item: I) => PropertyKey): Record<PropertyKey, I[]> {
+function groupBy<I>(item: I, getKey: (item: I) => PropertyKey): Record<PropertyKey, I[]> {
   const groups: Record<PropertyKey, I[]> = {};
-  for (const item of items) {
     const key = getKey(item);
     if (!groups[key]) {
       groups[key] = [];
     }
     groups[key]!.push(item);
-  }
   return groups;
 }
 

@@ -6,7 +6,7 @@ import { RichTextItem } from '../../../../sdk/types/article/Item';
 const richTextConverter = new RichTextConverter();
 
 export const useRichTextItem = (item: RichTextItem): [ReactNode[], string] => {
-  const { layouts } = useCntrlContext();
-  const [content, styles] = richTextConverter.toHtml(item, layouts);
+  const { exemplary } = useCntrlContext();
+  const [content, styles] = richTextConverter.toHtml(item, exemplary);
   return [content, styles];
 };

@@ -5,7 +5,6 @@ export type KeyframeAny = Keyframe<KeyframeType>;
 export interface Keyframe<T extends KeyframeType> {
   id: string;
   type: T;
-  layoutId: string;
   itemId: string;
   position: number;
   value: KeyframeValueMap[T];

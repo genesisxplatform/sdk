@@ -2,12 +2,12 @@ import { Project } from '../../types/project/Project';
 
 export const projectMock: Project = {
   id: 'projectId',
-  layouts: [],
   fonts: {
     google: '',
     adobe: '',
     custom: []
   },
+  exemplary: 375,
   html: {
     beforeBodyClose: '',
     afterBodyOpen: '',

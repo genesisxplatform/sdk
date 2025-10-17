@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { LayoutSchema } from './Layout.schema';
 import { FontFileTypes } from '../../types/project/Fonts';
 
 export const ProjectSchema = z.object({
@@ -16,7 +15,7 @@ export const ProjectSchema = z.object({
     keywords: z.string().optional(),
     favicon: z.string().optional()
   }),
-  layouts: z.array(LayoutSchema),
+  exemplary: z.number().positive(),
   pages: z.array(z.object({
     title: z.string(),
     articleId: z.string().min(1),

@@ -34,36 +34,30 @@ export const RichTextBlockSchema: z.Schema<RichTextBlock> = z.lazy(() => (
 
 export const RichTextItemSchema = ItemBaseSchema.extend({
   type: z.literal(ArticleItemType.RichText),
-  commonParams: z.object({
+  params: z.object({
     text: z.string(),
+    rangeStyles: z.array(RichTextStyleSchema).optional(),
+    textAlign: z.nativeEnum(TextAlign),
+    sizing: z.string(),
+    blur: z.number(),
+    fontSize: z.number(),
+    lineHeight: z.number(),
+    letterSpacing: z.number(),
+    wordSpacing: z.number(),
+    textTransform: z.nativeEnum(TextTransform),
+    verticalAlign: z.nativeEnum(VerticalAlign),
+    color: z.string(),
+    typeFace: z.string(),
+    fontStyle: z.string(),
+    fontWeight: z.number(),
+    fontVariant: z.string(),
+    isDraggable: z.boolean().optional(),
     blocks: z.array(RichTextBlockSchema).optional(),
     pointerEvents
   }),
-  sticky: z.record(
-    z.object({
+  sticky: z.object({
       from: z.number(),
       to: z.number().optional()
     }).nullable(),
-  ),
-  layoutParams: z.record(
-    z.object({
-      rangeStyles: z.array(RichTextStyleSchema).optional(),
-      textAlign: z.nativeEnum(TextAlign),
-      sizing: z.string(),
-      blur: z.number(),
-      fontSize: z.number(),
-      lineHeight: z.number(),
-      letterSpacing: z.number(),
-      wordSpacing: z.number(),
-      textTransform: z.nativeEnum(TextTransform),
-      verticalAlign: z.nativeEnum(VerticalAlign),
-      color: z.string(),
-      typeFace: z.string(),
-      fontStyle: z.string(),
-      fontWeight: z.number(),
-      fontVariant: z.string(),
-      isDraggable: z.boolean().optional()
-    })
-  ),
   state: z.record(RichTextStateParamsSchema)
 }) satisfies ZodType<RichTextItem>;

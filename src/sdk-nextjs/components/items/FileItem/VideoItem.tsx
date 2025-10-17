@@ -1,13 +1,10 @@
 import { FC, useEffect, useId, useMemo, useRef, useState } from 'react';
 import JSXStyle from 'styled-jsx/style';
-import { CntrlColor } from '@cntrl-site/color';
 import { ItemProps } from '../Item';
 import { LinkWrapper } from '../LinkWrapper';
 import { useFileItem } from './useFileItem';
 import { useItemAngle } from '../useItemAngle';
-import { useCntrlContext } from '../../../provider/useCntrlContext';
 import { useRegisterResize } from '../../../common/useRegisterResize';
-import { useLayoutContext } from '../../useLayoutContext';
 import { ScrollPlaybackVideo } from '../../ScrollPlaybackVideo';
 import { getStyleFromItemStateAndParams } from '../../../utils/getStyleFromItemStateAndParams';
 import { useVideoFx } from '../../../utils/effects/useVideoFx';
@@ -16,12 +13,11 @@ import { useItemFXData } from '../../../common/useItemFXData';
 import { getFill } from '../../../utils/getFill';
 import { FillLayer } from '../../../../sdk/types/article/Item';
 import { VideoItem as TVideoItem } from '../../../../sdk/types/article/Item';
-import { getLayoutStyles } from '../../../../utils';
+import { useCntrlContext } from '../../../provider/useCntrlContext';
+import { useExemplary } from '../../../common/useExemplary';
 
 export const VideoItem: FC<ItemProps<TVideoItem>> = ({ item, sectionId, onResize, interactionCtrl, onVisibilityChange }) => {
   const id = useId();
-  const { layouts } = useCntrlContext();
-  const layoutId = useLayoutContext();
   const {
     radius: itemRadius,
     strokeWidth: itemStrokeWidth,
@@ -37,19 +33,18 @@ export const VideoItem: FC<ItemProps<TVideoItem>> = ({ item, sectionId, onResize
   const [ref, setRef] = useState<HTMLDivElement | null>(null);
   const [videoRef, setVideoRef] = useState<HTMLVideoElement | null>(null);
   const fxCanvas = useRef<HTMLCanvasElement | null>(null);
-  const { url, hasGLEffect } = item.commonParams;
+  const { url, hasGLEffect } = item.params;
   const isInitialRef = useRef(true);
-  const area = layoutId ? item.area[layoutId] : null;
-  const layoutParams = layoutId ? item.layoutParams[layoutId] : null;
-  const exemplary = layouts?.find(l => l.id === layoutId)?.exemplary;
+  const area = item.area;
+  const params = item.params;
+  const exemplary = useExemplary();
   const width = area && exemplary ? area.width * exemplary : 0;
   const height = area && exemplary ? area.height * exemplary : 0;
   const { controlsValues, fragmentShader } = useItemFXData(item, sectionId);
   const rect = useElementRect(ref);
   const rectWidth = Math.floor(rect?.width ?? 0);
   const rectHeight = Math.floor(rect?.height ?? 0);
-  const scrollPlayback = layoutParams ? layoutParams.scrollPlayback : null;
-  const layoutValues: Record<string, any>[] = [item.area, item.layoutParams];
+  const scrollPlayback = params.scrollPlayback;
   const hasScrollPlayback = scrollPlayback !== null;
   const wrapperStateParams = interactionCtrl?.getState<number>(['angle', 'opacity', 'blur']);
   const videoStateParams = interactionCtrl?.getState<number>(['strokeWidth', 'radius']);
@@ -84,8 +79,8 @@ export const VideoItem: FC<ItemProps<TVideoItem>> = ({ item, sectionId, onResize
   );
   useRegisterResize(ref, onResize);
   const inlineStyles = {
-    ...(radius !== undefined ? { borderRadius: `${radius * 100}vw` } : {}),
-    ...(strokeWidth !== undefined ? { borderWidth: `${strokeWidth * 100}vw` } : {}),
+      borderRadius: `${radius * 100}vw`,
+    borderWidth: `${strokeWidth * 100}vw`,
     transition: videoStateParams?.transition ?? 'none'
   };
   const isInteractive = opacity !== 0;
@@ -94,7 +89,7 @@ export const VideoItem: FC<ItemProps<TVideoItem>> = ({ item, sectionId, onResize
   }, [isInteractive, onVisibilityChange]);
 
   useEffect(() => {
-    if (!layoutParams || !videoRef || layoutParams.play !== 'on-click' || !ref) return;
+    if (!videoRef || params.play !== 'on-click' || !ref) return;
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (userPaused || !isVideoInteracted) return;
@@ -109,7 +104,7 @@ export const VideoItem: FC<ItemProps<TVideoItem>> = ({ item, sectionId, onResize
     );
     observer.observe(ref);
     return () => observer.disconnect();
-  }, [layoutParams, videoRef, ref, userPaused, isVideoInteracted]);
+  }, [videoRef, ref, userPaused, isVideoInteracted]);
 
   return (
     <LinkWrapper url={item.link?.url} target={item.link?.target}>
@@ -117,9 +112,9 @@ export const VideoItem: FC<ItemProps<TVideoItem>> = ({ item, sectionId, onResize
         className={`video-wrapper-${item.id}`}
         ref={setRef}
         style={{
-          ...(opacity !== undefined ? { opacity } : {}),
-          ...(angle !== undefined ? { transform: `rotate(${angle}deg)` } : {}),
-          ...(blur !== undefined ? { filter: `blur(${blur * 100}vw)` } : {}),
+          opacity,
+          transform: `rotate(${angle}deg)`,
+          filter: `blur(${blur * 100}vw)`,
           ...(strokeValue ? {
             '--stroke-background': stroke,
             ...(strokeValue.type === 'image' ? {
@@ -135,7 +130,7 @@ export const VideoItem: FC<ItemProps<TVideoItem>> = ({ item, sectionId, onResize
         {hasScrollPlayback && (
           <ScrollPlaybackVideo
             sectionId={sectionId}
-            src={item.commonParams.url}
+            src={item.params.url}
             playbackParams={scrollPlayback}
             style={inlineStyles}
             className={`video video-playback-wrapper video-${item.id}`}
@@ -150,17 +145,17 @@ export const VideoItem: FC<ItemProps<TVideoItem>> = ({ item, sectionId, onResize
             height={rectHeight}
           />
         )}
-        {!hasScrollPlayback && !hasGLEffect && layoutParams && (
+        {!hasScrollPlayback && !hasGLEffect && (
           <>
             <video
-              poster={item.commonParams.coverUrl ?? ''}
+              poster={item.params.coverUrl ?? ''}
               ref={setVideoRef}
-              autoPlay={layoutParams.play === 'auto'}
+              autoPlay={params.play === 'auto'}
               preload="auto"
               onClick={() => {
                 setIsVideoInteracted(true);
               }}
-              muted={layoutParams.muted}
+              muted={params.muted}
               onPlay={() => {
                 setIsVideoPlaying(true);
                 setUserPaused(false);
@@ -172,29 +167,29 @@ export const VideoItem: FC<ItemProps<TVideoItem>> = ({ item, sectionId, onResize
                 setIsVideoPlaying(false);
               }}
               onMouseEnter={() => {
-                if (!videoRef || layoutParams.play !== 'on-hover') return;
+                if (!videoRef || params.play !== 'on-hover') return;
                 videoRef.play();
               }}
               onMouseLeave={() => {
-                if (!videoRef || layoutParams.play !== 'on-hover') return;
+                if (!videoRef || params.play !== 'on-hover') return;
                 videoRef.pause();
               }}
               loop
-              controls={layoutParams.controls}
+              controls={params.controls}
               playsInline
               className={`video video-${item.id}`}
               style={inlineStyles}
             >
-              <source src={item.commonParams.url} />
+              <source src={item.params.url} />
             </video>
-            {(layoutParams.play === 'on-click' || layoutParams.play === 'on-hover') && item.commonParams.coverUrl && !isVideoInteracted && (
+            {(params.play === 'on-click' || params.play === 'on-hover') && item.params.coverUrl && !isVideoInteracted && (
               <img
                 onMouseEnter={() => {
-                  if (!videoRef || layoutParams.play !== 'on-hover') return;
+                  if (!videoRef || params.play !== 'on-hover') return;
                   setIsVideoInteracted(true);
                   videoRef.play();
                 }}
-                src={item.commonParams.coverUrl ?? ''}
+                src={item.params.coverUrl ?? ''}
                 className={`video-cover-${item.id}`}
                 onClick={() => {
                   if (!videoRef) return;
@@ -203,7 +198,7 @@ export const VideoItem: FC<ItemProps<TVideoItem>> = ({ item, sectionId, onResize
                 }}
               />
             )}
-            {(layoutParams.play === 'on-click' && !layoutParams.controls && (
+            {(params.play === 'on-click' && !params.controls && (
               <div
                 className={`video-overlay-${item.id}`}
                 onClick={() => {
@@ -252,7 +247,10 @@ export const VideoItem: FC<ItemProps<TVideoItem>> = ({ item, sectionId, onResize
           width: 100%;
           height: 100%;
           box-sizing: border-box;
-          opacity: ${opacity};
+          opacity: ${params.opacity};
+          transform: rotate(${item.area.angle}deg);
+          filter: ${params.blur !== 0 ? `blur(${params.blur * 100}vw)` : 'unset'};
+          ${params.blur !== 0 ? 'will-change: transform;' : ''}
         }
         .video-overlay-${item.id} {
           position: absolute;
@@ -261,6 +259,18 @@ export const VideoItem: FC<ItemProps<TVideoItem>> = ({ item, sectionId, onResize
           cursor: pointer;
           width: 100%;
           height: 100%;
+        }
+        .video-border-${item.id} {
+          position: absolute;
+          inset: 0;
+          border-radius: inherit;
+          pointer-events: none;
+          z-index: 2;
+          -webkit-mask:
+            linear-gradient(#fff 0 0) content-box,
+            linear-gradient(#fff 0 0);
+          -webkit-mask-composite: xor;
+          mask-composite: exclude;
         }
         .video-cover-${item.id} {
           position: absolute;
@@ -281,7 +291,10 @@ export const VideoItem: FC<ItemProps<TVideoItem>> = ({ item, sectionId, onResize
           border-style: solid;
         }
         .video-${item.id} {
-          border-radius: ${radius !== undefined ? `${radius * 100}vw` : '0'};
+          border: solid;
+          border-color: transparent;
+          border-width: ${params.strokeWidth * 100}vw;
+          border-radius: ${params.radius * 100}vw;
         }
         .video-playback-wrapper {
           display: flex;
@@ -295,34 +308,6 @@ export const VideoItem: FC<ItemProps<TVideoItem>> = ({ item, sectionId, onResize
           border-width: 0;
           box-sizing: border-box;
         }
-        ${getLayoutStyles(layouts, layoutValues, ([area, layoutParams]) => {
-      return (`
-            .video-wrapper-${item.id} {
-              opacity: ${layoutParams.opacity};
-              transform: rotate(${area.angle}deg);
-              filter: ${layoutParams.blur !== 0 ? `blur(${layoutParams.blur * 100}vw)` : 'unset'};
-              ${layoutParams.blur !== 0 ? 'will-change: transform;' : ''}
-            }
-            .video-${item.id} {
-              border: solid;
-              border-color: transparent;
-              border-width: ${layoutParams.strokeWidth * 100}vw;
-              border-radius: ${layoutParams.radius * 100}vw;
-            }
-            .video-border-${item.id} {
-              position: absolute;
-              inset: 0;
-              border-radius: inherit;
-              pointer-events: none;
-              z-index: 2;
-              -webkit-mask:
-                linear-gradient(#fff 0 0) content-box,
-                linear-gradient(#fff 0 0);
-              -webkit-mask-composite: xor;
-              mask-composite: exclude;
-            }
-          `);
-    })}
     `}</JSXStyle>
     </LinkWrapper>
   );

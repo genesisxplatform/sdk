@@ -1,4 +1,5 @@
 import { Article } from '../../types/article/Article';
+import { SectionHeightMode } from '../../types/article/Section';
 
 export const articleMock: Article = {
   id: 'articleId',
@@ -6,11 +7,13 @@ export const articleMock: Article = {
     {
       id: 'sectionId',
       items: [],
-      position: {},
-      height: {},
-      hidden: {},
-      color: {}
+      height: {
+        mode: SectionHeightMode.ControlUnits,
+        units: 100
+      },
+      hidden: false,
+      color: 'red'
     }
   ],
-  interactions: {}
+  interactions: []
 };

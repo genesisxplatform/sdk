@@ -15,9 +15,8 @@ export const CompoundSettingsSchema = z.object({
 
 export const ItemBaseSchema = z.object({
   id: z.string().min(1),
-  area: z.record(ItemAreaSchema),
-  hidden: z.record(z.boolean()),
+  area: ItemAreaSchema,
+  hidden: z.boolean(),
   link: Link.optional(),
-  compoundSettings: z.record(CompoundSettingsSchema).optional(),
-  layoutParams: z.record(z.any()).optional()
+  compoundSettings: CompoundSettingsSchema.optional(),
 });

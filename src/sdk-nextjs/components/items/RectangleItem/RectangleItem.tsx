@@ -10,12 +10,10 @@ import { getStyleFromItemStateAndParams } from '../../../utils/getStyleFromItemS
 import { getFill } from '../../../utils/getFill';
 import { areFillsVisible } from '../../../utils/areFillsVisible/areFillsVisible';
 import { RectangleItem as TRectangleItem } from '../../../../sdk/types/article/Item';
-import { getLayoutStyles } from '../../../../utils';
 import { FillLayer } from '../../../../sdk/types/article/Item';
 
 export const RectangleItem: FC<ItemProps<TRectangleItem>> = ({ item, sectionId, onResize, interactionCtrl, onVisibilityChange }) => {
   const id = useId();
-  const { layouts } = useCntrlContext();
   const {
     fill: itemFill,
     radius: itemRadius,
@@ -33,7 +31,6 @@ export const RectangleItem: FC<ItemProps<TRectangleItem>> = ({ item, sectionId, 
   const stateStrokeFillLayers = stateStrokeFillParams?.styles?.strokeFill;
   const strokeSolidTransition = stateStrokeFillParams?.transition ?? 'none';
   const styles = stateParams?.styles ?? {};
-  const layoutValues: Record<string, any>[] = [item.area, item.layoutParams];
   const [ref, setRef] = useState<HTMLDivElement | null>(null);
   useRegisterResize(ref, onResize);
   const backdropBlur = getStyleFromItemStateAndParams(styles?.backdropBlur, itemBackdropBlur);
@@ -69,7 +66,7 @@ export const RectangleItem: FC<ItemProps<TRectangleItem>> = ({ item, sectionId, 
                 backgroundRepeat: strokeValue.behavior === 'repeat' ? 'repeat' : 'no-repeat'
               } : {})
             } : {}),
-            ...(radius !== undefined ? { borderRadius: `${radius * 100}vw` } : {}),
+            borderRadius: `${radius * 100}vw`,
             ...(angle !== undefined ? { transform: `rotate(${angle}deg)` } : {}),
             ...(blur !== undefined ? { filter: `blur(${blur * 100}vw)` } : {}),
             willChange: blur !== 0 && blur !== undefined ? 'transform' : 'unset',
@@ -125,6 +122,12 @@ export const RectangleItem: FC<ItemProps<TRectangleItem>> = ({ item, sectionId, 
           width: 100%;
           height: 100%;
           box-sizing: border-box;
+          border-radius: ${item.params.radius * 100}vw
+          transform: rotate(${item.area.angle}deg);
+          filter: ${item.params.blur !== 0 ? `blur(${item.params.blur * 100}vw)` : 'unset'};
+          ${item.params.blur !== 0 ? 'will-change: transform;' : ''}
+          backdrop-filter: ${item.params.backdropBlur !== 0 ? `blur(${item.params.backdropBlur * 100}vw)` : 'unset'};
+          -webkit-backdrop-filter: ${item.params.backdropBlur !== 0 ? `blur(${item.params.backdropBlur * 100}vw)` : 'unset'};
         },
         .image-fill-${item.id} {
           position: absolute;
@@ -136,30 +139,18 @@ export const RectangleItem: FC<ItemProps<TRectangleItem>> = ({ item, sectionId, 
           z-index: 1;
           background-position: center;
         },
-        ${getLayoutStyles(layouts, layoutValues, ([area, layoutParams]) => {
-      return (`
-            .rectangle-${item.id} {
-              border-radius: ${layoutParams.radius * 100}vw
-              transform: rotate(${area.angle}deg);
-              filter: ${layoutParams.blur !== 0 ? `blur(${layoutParams.blur * 100}vw)` : 'unset'};
-              ${layoutParams.blur !== 0 ? 'will-change: transform;' : ''}
-              backdrop-filter: ${layoutParams.backdropBlur !== 0 ? `blur(${layoutParams.backdropBlur * 100}vw)` : 'unset'};
-              -webkit-backdrop-filter: ${layoutParams.backdropBlur !== 0 ? `blur(${layoutParams.backdropBlur * 100}vw)` : 'unset'};
-            },
-            .rectangle-border-${item.id} {
-              position: absolute;
-              inset: 0;
-              border-radius: inherit;
-              pointer-events: none;
-              z-index: 2;
-              -webkit-mask:
-                linear-gradient(#fff 0 0) content-box,
-                linear-gradient(#fff 0 0);
-              -webkit-mask-composite: xor;
-              mask-composite: exclude;
-            }
-          `);
-    })}
+        .rectangle-border-${item.id} {
+          position: absolute;
+          inset: 0;
+          border-radius: inherit;
+          pointer-events: none;
+          z-index: 2;
+          -webkit-mask:
+          linear-gradient(#fff 0 0) content-box,
+          linear-gradient(#fff 0 0);
+          -webkit-mask-composite: xor;
+          mask-composite: exclude;
+        }
       `}</JSXStyle>
       </>
     </LinkWrapper>

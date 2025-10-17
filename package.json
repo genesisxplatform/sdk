@@ -1,9 +1,9 @@
 {
   "name": "@gxpl/sdk",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Generic SDK for use in public websites.",
   "main": "lib/index.js",
-  "types": "src/index.ts",
+  "types": "lib/index.d.ts",
   "scripts": {
     "test": "jest",
     "prebuild": "rimraf ./lib",
@@ -14,7 +14,7 @@
     "gxpl-sdk": "lib/cli.js"
   },
   "files": [
-    "dist",
+    "lib",
     "resources"
   ],
   "repository": {

@@ -35,5 +35,5 @@ export const SectionSchema = z.object({
   height: SectionHeightSchema,
   hidden: z.boolean(),
   color: z.string().nullable(),
-  media: SectionMediaSchema
+  media: SectionMediaSchema.optional()
 });

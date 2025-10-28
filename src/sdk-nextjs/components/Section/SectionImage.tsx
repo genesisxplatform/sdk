@@ -16,7 +16,7 @@ interface Props {
 export const SectionImage: FC<Props> = ({ media, sectionId }) => {
   const { url, size, position, offsetX } = media;
   const isContainHeight = size === 'contain-height';
-  const hasOffsetX = offsetX !== null && size === 'contain';
+  const hasOffsetX = offsetX !== null;
   return (
     <>
       <div
@@ -34,7 +34,7 @@ export const SectionImage: FC<Props> = ({ media, sectionId }) => {
           className={`image-background-${sectionId}`}
           style={{
             objectFit: isContainHeight ? 'unset' : (size ?? 'cover') as CSSProperties['objectFit'],
-            width: isContainHeight || hasOffsetX ? 'auto' : '100%',
+            width: isContainHeight ? 'auto' : '100%',
             transform: isContainHeight ? 'translateX(-50%)' : 'none',
             position: 'relative',
             left: isContainHeight ? '50%' : (hasOffsetX ? `${offsetX * 100}vw` : '0'),

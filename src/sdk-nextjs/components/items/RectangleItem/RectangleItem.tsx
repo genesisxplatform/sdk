@@ -102,7 +102,7 @@ export const RectangleItem: FC<ItemProps<TRectangleItem>> = ({ item, sectionId, 
               } : { background: stroke }),
             }}
           />
-          {itemFill && itemFill.map((fill) => {
+          {itemFill && itemFill.map((fill, i) => {
             const stateFillLayer = stateFillLayers?.find((layer) => layer.id === fill.id);
             const value = stateFillLayer
               ? (getStyleFromItemStateAndParams<FillLayer>(stateFillLayer, fill) ?? fill)
@@ -112,7 +112,7 @@ export const RectangleItem: FC<ItemProps<TRectangleItem>> = ({ item, sectionId, 
               : 'transparent';
 
             return (
-              <Fill fill={value} itemId={item.id} background={background} solidTransition={solidTransition} />
+              <Fill fill={value} itemId={item.id} background={background} solidTransition={solidTransition} key={`fill-${i}-${fill.id}`} />
             );
           })}
         </div>

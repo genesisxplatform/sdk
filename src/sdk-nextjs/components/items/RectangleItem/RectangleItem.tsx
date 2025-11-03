@@ -23,32 +23,27 @@ export const RectangleItem: FC<ItemProps<TRectangleItem>> = ({ item, sectionId, 
     backdropBlur: itemBackdropBlur
   } = useRectangleItem(item, sectionId);
   const itemAngle = useItemAngle(item, sectionId);
-  const stateParams = interactionCtrl?.getState<number>(['angle', 'strokeWidth', 'radius', 'blur', 'backdropBlur']);
+  const stateParams = interactionCtrl?.getState<any>(['angle', 'strokeWidth', 'radius', 'blur', 'backdropBlur', 'strokeFill']);
   const stateFillParams = interactionCtrl?.getState<FillLayer[]>(['fill']);
   const stateFillLayers = stateFillParams?.styles?.fill;
   const solidTransition = stateFillParams?.transition ?? 'none';
-  const stateStrokeFillParams = interactionCtrl?.getState<FillLayer[]>(['strokeFill']);
-  const stateStrokeFillLayers = stateStrokeFillParams?.styles?.strokeFill;
-  const strokeSolidTransition = stateStrokeFillParams?.transition ?? 'none';
   const styles = stateParams?.styles ?? {};
   const [ref, setRef] = useState<HTMLDivElement | null>(null);
   useRegisterResize(ref, onResize);
   const backdropBlur = getStyleFromItemStateAndParams(styles?.backdropBlur, itemBackdropBlur);
   const radius = getStyleFromItemStateAndParams(styles?.radius, itemRadius);
   const strokeWidth = getStyleFromItemStateAndParams(styles?.strokeWidth, itemStrokeWidth);
+  const strokeFill = getStyleFromItemStateAndParams(styles?.strokeFill?.[0], itemStrokeFill?.[0]) ?? itemStrokeFill?.[0];
   const angle = getStyleFromItemStateAndParams(styles?.angle, itemAngle);
   const blur = getStyleFromItemStateAndParams(styles?.blur, itemBlur);
   const backdropFilterValue = backdropBlur ? `blur(${backdropBlur * 100}vw)` : undefined;
-  const isInteractive = areFillsVisible(stateFillLayers ?? itemFill ?? []) || (strokeWidth !== 0 && areFillsVisible(stateStrokeFillLayers ?? itemStrokeFill ?? []));
+  const isInteractive = areFillsVisible(stateFillLayers ?? itemFill ?? []) || (strokeWidth !== 0 && areFillsVisible(strokeFill ?? itemStrokeFill ?? []));
   useEffect(() => {
     onVisibilityChange?.(isInteractive);
   }, [isInteractive, onVisibilityChange]);
 
-  const strokeValue = stateStrokeFillLayers
-    ? getStyleFromItemStateAndParams<FillLayer>(stateStrokeFillLayers[0], itemStrokeFill?.[0])
-    : itemStrokeFill?.[0];
-  const stroke = strokeValue
-    ? getFill(strokeValue) ?? 'transparent'
+  const stroke = strokeFill
+    ? getFill(strokeFill) ?? 'transparent'
     : 'transparent';
 
   return (
@@ -58,12 +53,15 @@ export const RectangleItem: FC<ItemProps<TRectangleItem>> = ({ item, sectionId, 
           className={`rectangle-${item.id}`}
           ref={setRef}
           style={{
-            ...(strokeValue ? {
-              '--stroke-background': stroke,
-              ...(strokeValue.type === 'image' ? {
+            ...(strokeFill ? {
+              borderColor: stroke,
+              borderWidth: strokeWidth !== undefined ? `${strokeWidth * 100}vw` : 0,
+              borderRadius: radius !== undefined ? `${radius * 100}vw` : 'inherit',
+              borderStyle: 'solid',
+              ...(strokeFill.type === 'image' ? {
                 backgroundPosition: 'center',
-                backgroundSize: strokeValue.behavior === 'repeat' ? `${strokeValue.backgroundSize}%` : strokeValue.behavior,
-                backgroundRepeat: strokeValue.behavior === 'repeat' ? 'repeat' : 'no-repeat'
+                backgroundSize: strokeFill.behavior === 'repeat' ? `${strokeFill.backgroundSize}%` : strokeFill.behavior,
+                backgroundRepeat: strokeFill.behavior === 'repeat' ? 'repeat' : 'no-repeat'
               } : {})
             } : {}),
             borderRadius: `${radius * 100}vw`,
@@ -77,31 +75,6 @@ export const RectangleItem: FC<ItemProps<TRectangleItem>> = ({ item, sectionId, 
             transition: stateParams?.transition ?? 'none'
           }}
         >
-          <div
-            className={`rectangle-border-${item.id}`}
-            style={{
-              position: 'absolute',
-              inset: 0,
-              borderRadius: 'inherit',
-              pointerEvents: 'none',
-              zIndex: 2,
-              WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
-              WebkitMaskComposite: 'xor',
-              maskComposite: 'exclude',
-              ...(strokeWidth !== 0 && strokeValue ? {
-                ...(strokeWidth ? { padding: `${strokeWidth * 100}vw` } : {}),
-                ...(strokeValue.type === 'solid' ? { transition: strokeSolidTransition, background: stroke } : {}),
-                ...(strokeValue.type === 'image' ? {
-                  backgroundPosition: 'center',
-                  backgroundSize: strokeValue.behavior === 'repeat' ? `${strokeValue.backgroundSize}%` : strokeValue.behavior,
-                  backgroundRepeat: strokeValue.behavior === 'repeat' ? 'repeat' : 'no-repeat'
-                } : {
-                  background: stroke,
-                }
-                )
-              } : { background: stroke }),
-            }}
-          />
           {itemFill && itemFill.map((fill) => {
             const stateFillLayer = stateFillLayers?.find((layer) => layer.id === fill.id);
             const value = stateFillLayer
@@ -112,7 +85,14 @@ export const RectangleItem: FC<ItemProps<TRectangleItem>> = ({ item, sectionId, 
               : 'transparent';
 
             return (
-              <Fill fill={value} itemId={item.id} background={background} solidTransition={solidTransition} />
+              <Fill
+                fill={value}
+                itemId={item.id}
+                background={background}
+                solidTransition={solidTransition}
+                radius={radius}
+                strokeWidth={strokeWidth}
+              />
             );
           })}
         </div>
@@ -139,25 +119,20 @@ export const RectangleItem: FC<ItemProps<TRectangleItem>> = ({ item, sectionId, 
           z-index: 1;
           background-position: center;
         },
-        .rectangle-border-${item.id} {
-          position: absolute;
-          inset: 0;
-          border-radius: inherit;
-          pointer-events: none;
-          z-index: 2;
-          -webkit-mask:
-          linear-gradient(#fff 0 0) content-box,
-          linear-gradient(#fff 0 0);
-          -webkit-mask-composite: xor;
-          mask-composite: exclude;
-        }
       `}</JSXStyle>
       </>
     </LinkWrapper>
   );
 };
 
-function Fill({ fill, itemId, background, solidTransition }: { fill: FillLayer; itemId: string; background: string; solidTransition: string; }) {
+function Fill({ 
+    fill,
+    itemId,
+    background,
+    solidTransition,
+    radius,
+    strokeWidth
+  }: { fill: FillLayer; itemId: string; background: string; solidTransition: string; radius: number; strokeWidth: number; }) {
   const isRotatedImage = fill.type === 'image' && fill.rotation && fill.rotation !== 0;
 
   return (
@@ -176,10 +151,10 @@ function Fill({ fill, itemId, background, solidTransition }: { fill: FillLayer; 
             }
           : { background }),
         position: 'absolute',
-        borderRadius: 'inherit',
         mixBlendMode: fill.blendMode as any,
         top: 0,
         left: 0,
+        borderRadius: `calc(${radius * 100}vw - ${strokeWidth * 100}vw)`,
         width: '100%',
         height: '100%',
         pointerEvents: 'none',

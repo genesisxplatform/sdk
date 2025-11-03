@@ -47,21 +47,16 @@ export const VideoItem: FC<ItemProps<TVideoItem>> = ({ item, sectionId, onResize
   const scrollPlayback = params.scrollPlayback;
   const hasScrollPlayback = scrollPlayback !== null;
   const wrapperStateParams = interactionCtrl?.getState<number>(['angle', 'opacity', 'blur']);
-  const videoStateParams = interactionCtrl?.getState<number>(['strokeWidth', 'radius']);
-  const stateStrokeFillParams = interactionCtrl?.getState<FillLayer[]>(['strokeFill']);
-  const stateStrokeFillLayers = stateStrokeFillParams?.styles?.strokeFill;
-  const strokeSolidTransition = stateStrokeFillParams?.transition ?? 'none';
+  const videoStateParams = interactionCtrl?.getState<any>(['strokeWidth', 'radius', 'strokeFill']);
   const angle = getStyleFromItemStateAndParams(wrapperStateParams?.styles?.angle, itemAngle);
   const opacity = getStyleFromItemStateAndParams(wrapperStateParams?.styles?.opacity, itemOpacity);
   const blur = getStyleFromItemStateAndParams(wrapperStateParams?.styles?.blur, itemBlur);
   const strokeWidth = getStyleFromItemStateAndParams(wrapperStateParams?.styles?.strokeWidth, itemStrokeWidth);
   const radius = getStyleFromItemStateAndParams(wrapperStateParams?.styles?.radius, itemRadius);
 
-  const strokeValue = stateStrokeFillLayers
-    ? getStyleFromItemStateAndParams<FillLayer>(stateStrokeFillLayers[0], itemStrokeFill?.[0])
-    : itemStrokeFill?.[0];
-  const stroke = strokeValue
-    ? getFill(strokeValue) ?? 'transparent'
+  const strokeFill = getStyleFromItemStateAndParams(videoStateParams?.styles?.strokeFill?.[0], itemStrokeFill?.[0]) ?? itemStrokeFill?.[0];
+  const stroke = strokeFill
+    ? getFill(strokeFill) ?? 'transparent'
     : 'transparent';
   useEffect(() => {
     isInitialRef.current = false;
@@ -80,7 +75,12 @@ export const VideoItem: FC<ItemProps<TVideoItem>> = ({ item, sectionId, onResize
   useRegisterResize(ref, onResize);
   const inlineStyles = {
       borderRadius: `${radius * 100}vw`,
-    borderWidth: `${strokeWidth * 100}vw`,
+      ...(strokeWidth !== undefined ? {
+        borderWidth: `${strokeWidth * 100}vw`,
+        borderColor: stroke,
+        borderRadius: radius !== undefined ? `${radius * 100}vw` : 'inherit',
+        borderStyle: 'solid'
+      } : {}),
     transition: videoStateParams?.transition ?? 'none'
   };
   const isInteractive = opacity !== 0;
@@ -115,14 +115,6 @@ export const VideoItem: FC<ItemProps<TVideoItem>> = ({ item, sectionId, onResize
           opacity,
           transform: `rotate(${angle}deg)`,
           filter: `blur(${blur * 100}vw)`,
-          ...(strokeValue ? {
-            '--stroke-background': stroke,
-            ...(strokeValue.type === 'image' ? {
-              '--stroke-background-position': 'center',
-              '--stroke-background-size': strokeValue.behavior === 'repeat' ? `${strokeValue.backgroundSize}%` : strokeValue.behavior,
-              '--stroke-background-repeat': strokeValue.behavior === 'repeat' ? 'repeat' : 'no-repeat'
-            } : {})
-          } : {}),
           willChange: blur !== 0 && blur !== undefined ? 'transform' : 'unset',
           transition: wrapperStateParams?.transition ?? 'none'
         }}
@@ -214,31 +206,6 @@ export const VideoItem: FC<ItemProps<TVideoItem>> = ({ item, sectionId, onResize
             ))}
           </>
         )}
-        <div
-          className={`video-border-${item.id}`}
-          style={{
-            position: 'absolute',
-            inset: 0,
-            borderRadius: 'inherit',
-            pointerEvents: 'none',
-            zIndex: 2,
-            WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
-            WebkitMaskComposite: 'xor',
-            maskComposite: 'exclude',
-            ...(strokeWidth !== 0 && strokeValue ? {
-              ...(strokeWidth ? { padding: `${strokeWidth * 100}vw` } : {}),
-              ...(strokeValue.type === 'solid' ? { transition: strokeSolidTransition, background: stroke } : {}),
-              ...(strokeValue.type === 'image' ? {
-                backgroundPosition: 'center',
-                backgroundSize: strokeValue.behavior === 'repeat' ? `${strokeValue.backgroundSize}%` : strokeValue.behavior,
-                backgroundRepeat: strokeValue.behavior === 'repeat' ? 'repeat' : 'no-repeat'
-              } : {
-                background: stroke,
-              }
-              )
-            } : { background: stroke }),
-          }}
-        />
       </div>
       <JSXStyle id={id}>{`
         .video-wrapper-${item.id} {
@@ -292,9 +259,9 @@ export const VideoItem: FC<ItemProps<TVideoItem>> = ({ item, sectionId, onResize
         }
         .video-${item.id} {
           border: solid;
-          border-color: transparent;
-          border-width: ${params.strokeWidth * 100}vw;
-          border-radius: ${params.radius * 100}vw;
+          border-color: ${stroke};
+          border-radius: ${radius * 100}vw;
+          border-width: ${strokeWidth * 100}vw;
         }
         .video-playback-wrapper {
           display: flex;

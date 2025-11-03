@@ -1,4 +1,4 @@
-import { FC, useEffect, useId, useMemo, useRef, useState } from 'react';
+import { FC, useEffect, useId, useRef, useState } from 'react';
 import JSXStyle from 'styled-jsx/style';
 import { ItemProps } from '../Item';
 import { LinkWrapper } from '../LinkWrapper';
@@ -10,7 +10,6 @@ import { useElementRect } from '../../../utils/useElementRect';
 import { getStyleFromItemStateAndParams } from '../../../utils/getStyleFromItemStateAndParams';
 import { useItemFXData } from '../../../common/useItemFXData';
 import { getFill } from '../../../utils/getFill';
-import { FillLayer } from '../../../../sdk/types/article/Item';
 import { ImageItem as TImageItem } from '../../../../sdk/types/article/Item';
 import { useExemplary } from '../../../common/useExemplary';
 
@@ -37,10 +36,7 @@ export const ImageItem: FC<ItemProps<TImageItem>> = ({ item, sectionId, onResize
   const height = area.height * exemplary;
   const params = item.params;
   const wrapperStateParams = interactionCtrl?.getState<number>(['angle', 'opacity', 'blur']);
-  const imgStateParams = interactionCtrl?.getState<number>(['strokeWidth', 'radius']);
-  const stateStrokeFillParams = interactionCtrl?.getState<FillLayer[]>(['strokeFill']);
-  const stateStrokeFillLayers = stateStrokeFillParams?.styles?.strokeFill;
-  const strokeSolidTransition = stateStrokeFillParams?.transition ?? 'none';
+  const imgStateParams = interactionCtrl?.getState<any>(['strokeWidth', 'radius', 'strokeFill']);
 
   useEffect(() => {
     isInitialRef.current = false;
@@ -62,20 +58,23 @@ export const ImageItem: FC<ItemProps<TImageItem>> = ({ item, sectionId, onResize
   const radius = getStyleFromItemStateAndParams(imgStateParams?.styles?.radius, itemRadius);
   const strokeWidth = getStyleFromItemStateAndParams(imgStateParams?.styles?.strokeWidth, itemStrokeWidth);
   const angle = getStyleFromItemStateAndParams(wrapperStateParams?.styles?.angle, itemAngle);
+  const strokeFill = getStyleFromItemStateAndParams(imgStateParams?.styles?.strokeFill?.[0], itemStrokeFill?.[0]) ?? itemStrokeFill?.[0];
   const opacity = getStyleFromItemStateAndParams(wrapperStateParams?.styles?.opacity, itemOpacity);
   const blur = getStyleFromItemStateAndParams(wrapperStateParams?.styles?.blur, itemBlur);
 
-  const strokeValue = stateStrokeFillLayers
-    ? getStyleFromItemStateAndParams<FillLayer>(stateStrokeFillLayers[0], itemStrokeFill?.[0])
-    : itemStrokeFill?.[0];
-  const stroke = strokeValue
-    ? getFill(strokeValue) ?? 'transparent'
+  const stroke = strokeFill
+    ? getFill(strokeFill) ?? 'transparent'
     : 'transparent';
-  const inlineStyles = {
-    borderRadius: `${radius * 100}vw`,
-    borderWidth: `${strokeWidth * 100}vw`,
-    transition: imgStateParams?.transition ?? 'none'
-  };
+    const inlineStyles = {
+      ...(radius !== undefined ? { borderRadius: `${radius * 100}vw` } : {}),
+      ...(strokeWidth !== undefined ? {
+        borderColor: stroke,
+        borderWidth: `${strokeWidth * 100}vw`,
+        borderRadius: radius !== undefined ? `${radius * 100}vw` : 'inherit',
+        borderStyle: 'solid',
+      } : {}),
+      transition: imgStateParams?.transition ?? 'none'
+    };
   const isInteractive = opacity !== 0;
   useEffect(() => {
     onVisibilityChange?.(isInteractive);
@@ -90,14 +89,6 @@ export const ImageItem: FC<ItemProps<TImageItem>> = ({ item, sectionId, onResize
             opacity,
             transform: `rotate(${angle}deg)`,
             ...(blur !== undefined ? { filter: `blur(${blur * 100}vw)` } : {}),
-            ...(strokeValue ? {
-              '--stroke-background': stroke,
-              ...(strokeValue.type === 'image' ? {
-                '--stroke-background-position': 'center',
-                '--stroke-background-size': strokeValue.behavior === 'repeat' ? `${strokeValue.backgroundSize}%` : strokeValue.behavior,
-                '--stroke-background-repeat': strokeValue.behavior === 'repeat' ? 'repeat' : 'no-repeat'
-              } : {})
-            } : {}),
             willChange: blur !== 0 && blur !== undefined ? 'transform' : 'unset',
             transition: wrapperStateParams?.transition ?? 'none'
           }}
@@ -120,31 +111,6 @@ export const ImageItem: FC<ItemProps<TImageItem>> = ({ item, sectionId, onResize
                   src={item.params.url}
                 />
               )}
-          <div
-            className={`image-border-${item.id}`}
-            style={{
-              position: 'absolute',
-              inset: 0,
-              borderRadius: 'inherit',
-              pointerEvents: 'none',
-              zIndex: 2,
-              WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
-              WebkitMaskComposite: 'xor',
-              maskComposite: 'exclude',
-              ...(strokeWidth !== 0 && strokeValue ? {
-                ...(strokeWidth ? { padding: `${strokeWidth * 100}vw` } : {}),
-                ...(strokeValue.type === 'solid' ? { transition: strokeSolidTransition, background: stroke } : {}),
-                ...(strokeValue.type === 'image' ? {
-                  backgroundPosition: 'center',
-                  backgroundSize: strokeValue.behavior === 'repeat' ? `${strokeValue.backgroundSize}%` : strokeValue.behavior,
-                  backgroundRepeat: strokeValue.behavior === 'repeat' ? 'repeat' : 'no-repeat'
-                } : {
-                  background: stroke,
-                }
-                )
-              } : { background: stroke }),
-            }}
-          />
         </div>
         <JSXStyle id={id}>{`
         .image-wrapper-${item.id} {
@@ -175,18 +141,6 @@ export const ImageItem: FC<ItemProps<TImageItem>> = ({ item, sectionId, onResize
           pointer-events: none;
           border-width: 0;
           box-sizing: border-box;
-        }
-        .image-border-${item.id} {
-          position: absolute;
-          inset: 0;
-          border-radius: inherit;
-          pointer-events: none;
-          z-index: 2;
-          -webkit-mask:
-            linear-gradient(#fff 0 0) content-box,
-            linear-gradient(#fff 0 0);
-          -webkit-mask-composite: xor;
-          mask-composite: exclude;
         }
         .image-${item.id} {
           border: solid;

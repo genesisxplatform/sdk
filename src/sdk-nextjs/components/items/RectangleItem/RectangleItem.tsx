@@ -75,7 +75,32 @@ export const RectangleItem: FC<ItemProps<TRectangleItem>> = ({ item, sectionId, 
             transition: stateParams?.transition ?? 'none'
           }}
         >
-          {itemFill && itemFill.map((fill) => {
+          <div
+            className={`rectangle-border-${item.id}`}
+            style={{
+              position: 'absolute',
+              inset: 0,
+              borderRadius: 'inherit',
+              pointerEvents: 'none',
+              zIndex: 2,
+              WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+              WebkitMaskComposite: 'xor',
+              maskComposite: 'exclude',
+              ...(strokeWidth !== 0 && strokeValue ? {
+                ...(strokeWidth ? { padding: `${strokeWidth * 100}vw` } : {}),
+                ...(strokeValue.type === 'solid' ? { transition: strokeSolidTransition, background: stroke } : {}),
+                ...(strokeValue.type === 'image' ? {
+                  backgroundPosition: 'center',
+                  backgroundSize: strokeValue.behavior === 'repeat' ? `${strokeValue.backgroundSize}%` : strokeValue.behavior,
+                  backgroundRepeat: strokeValue.behavior === 'repeat' ? 'repeat' : 'no-repeat'
+                } : {
+                  background: stroke,
+                }
+                )
+              } : { background: stroke }),
+            }}
+          />
+          {itemFill && itemFill.map((fill, i) => {
             const stateFillLayer = stateFillLayers?.find((layer) => layer.id === fill.id);
             const value = stateFillLayer
               ? (getStyleFromItemStateAndParams<FillLayer>(stateFillLayer, fill) ?? fill)
@@ -92,7 +117,8 @@ export const RectangleItem: FC<ItemProps<TRectangleItem>> = ({ item, sectionId, 
                 solidTransition={solidTransition}
                 radius={radius}
                 strokeWidth={strokeWidth}
-              />
+                key={`fill-${i}-${fill.id}`}
+                />
             );
           })}
         </div>

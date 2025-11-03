@@ -141,8 +141,8 @@ export const Item: FC<ItemWrapperProps> = ({ item, sectionId, articleHeight, isP
         suppressHydrationWarning={true}
         className={`item-${item.id}`}
         style={{
-          top: `${stickyTop * 100}vw`,
-          height: isRichText && itemHeight !== undefined ? `${itemHeight * 100}vw` : 'unset',
+        top: item.sticky ? getAnchoredItemTop(stickyTop, sectionHeight, anchorSide) : 0,
+        height: isRichText && itemHeight !== undefined ? `${itemHeight * 100}vw` : 'unset'
         }}
       >
         <RichTextWrapper isRichText={isRichText}>

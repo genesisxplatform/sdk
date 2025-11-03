@@ -75,31 +75,6 @@ export const RectangleItem: FC<ItemProps<TRectangleItem>> = ({ item, sectionId, 
             transition: stateParams?.transition ?? 'none'
           }}
         >
-          <div
-            className={`rectangle-border-${item.id}`}
-            style={{
-              position: 'absolute',
-              inset: 0,
-              borderRadius: 'inherit',
-              pointerEvents: 'none',
-              zIndex: 2,
-              WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
-              WebkitMaskComposite: 'xor',
-              maskComposite: 'exclude',
-              ...(strokeWidth !== 0 && strokeValue ? {
-                ...(strokeWidth ? { padding: `${strokeWidth * 100}vw` } : {}),
-                ...(strokeValue.type === 'solid' ? { transition: strokeSolidTransition, background: stroke } : {}),
-                ...(strokeValue.type === 'image' ? {
-                  backgroundPosition: 'center',
-                  backgroundSize: strokeValue.behavior === 'repeat' ? `${strokeValue.backgroundSize}%` : strokeValue.behavior,
-                  backgroundRepeat: strokeValue.behavior === 'repeat' ? 'repeat' : 'no-repeat'
-                } : {
-                  background: stroke,
-                }
-                )
-              } : { background: stroke }),
-            }}
-          />
           {itemFill && itemFill.map((fill, i) => {
             const stateFillLayer = stateFillLayers?.find((layer) => layer.id === fill.id);
             const value = stateFillLayer
@@ -118,7 +93,7 @@ export const RectangleItem: FC<ItemProps<TRectangleItem>> = ({ item, sectionId, 
                 radius={radius}
                 strokeWidth={strokeWidth}
                 key={`fill-${i}-${fill.id}`}
-                />
+              />
             );
           })}
         </div>
@@ -157,13 +132,14 @@ function Fill({
     background,
     solidTransition,
     radius,
-    strokeWidth
-  }: { fill: FillLayer; itemId: string; background: string; solidTransition: string; radius: number; strokeWidth: number; }) {
+    strokeWidth,
+    key
+  }: { fill: FillLayer; itemId: string; background: string; solidTransition: string; radius: number; strokeWidth: number; key: string; }) {
   const isRotatedImage = fill.type === 'image' && fill.rotation && fill.rotation !== 0;
 
   return (
     <div
-      key={fill.id}
+      key={key}
       className={fill.type === 'image' ? `image-fill-${itemId}` : `fill-${itemId}`}
       style={{
         ...(fill.type === 'solid' ? { background, transition: solidTransition } : {}),

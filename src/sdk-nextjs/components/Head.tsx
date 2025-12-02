@@ -1,16 +1,14 @@
-import React, { FC } from 'react';
+import { FC } from 'react';
 import HTMLReactParser, { domToReact } from 'html-react-parser';
 import Head from 'next/head';
-import { Meta } from '../../sdk/types/project/Meta';
 import { Project } from '../../sdk/types/project/Project';
 import { FontFaceGenerator } from '../../sdk/FontFaceGenerator/FontFaceGenerator';
 
 interface Props {
   project: Project;
-  meta: Meta;
 }
 
-export const CNTRLHead: FC<Props> = ({ meta, project }) => {
+export const CNTRLHead: FC<Props> = ({ project }) => {
   const googleFonts: ReturnType<typeof domToReact> = HTMLReactParser(project.fonts.google);
   const adobeFonts: ReturnType<typeof domToReact> = HTMLReactParser(project.fonts.adobe);
   const parsedFonts = {
@@ -29,6 +27,7 @@ export const CNTRLHead: FC<Props> = ({ meta, project }) => {
       <link key={`link-${rel}-${href}`} rel={rel} href={href} />
     );
   });
+  const { meta } = project;
   return (
     <Head>
       <title>{meta.title}</title>

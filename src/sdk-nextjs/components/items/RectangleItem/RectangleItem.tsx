@@ -93,6 +93,7 @@ export const RectangleItem: FC<ItemProps<TRectangleItem>> = ({ item, sectionId, 
                 radius={radius}
                 strokeWidth={strokeWidth}
                 key={`fill-${i}-${fill.id}`}
+                fillId={fill.id}
               />
             );
           })}
@@ -127,19 +128,19 @@ export const RectangleItem: FC<ItemProps<TRectangleItem>> = ({ item, sectionId, 
 };
 
 function Fill({ 
+    fillId,
     fill,
     itemId,
     background,
     solidTransition,
     radius,
     strokeWidth,
-    key
-  }: { fill: FillLayer; itemId: string; background: string; solidTransition: string; radius: number; strokeWidth: number; key: string; }) {
+  }: { fillId: string; fill: FillLayer; itemId: string; background: string; solidTransition: string; radius: number; strokeWidth: number; }) {
   const isRotatedImage = fill.type === 'image' && fill.rotation && fill.rotation !== 0;
 
   return (
     <div
-      key={key}
+      key={fillId}
       className={fill.type === 'image' ? `image-fill-${itemId}` : `fill-${itemId}`}
       style={{
         ...(fill.type === 'solid' ? { background, transition: solidTransition } : {}),

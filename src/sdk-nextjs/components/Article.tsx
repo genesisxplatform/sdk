@@ -45,7 +45,7 @@ export const Article: FC<Props> = ({ article, styles, keyframes }) => {
     <ArticleRectContext.Provider value={articleRectObserver}>
       <InteractionsProvider article={article}>
         <KeyframesContext.Provider value={keyframesRepo}>
-          <ArticleWrapper id={id} styles={styles}>
+          <ArticleWrapper id={article.id} styles={styles}>
             <div className="article" ref={articleRef}>
               <WebglContextManagerContext.Provider value={webglContextManager}>
                 {article.sections.map((section, i) => {

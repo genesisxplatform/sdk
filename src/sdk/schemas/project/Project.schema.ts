@@ -17,16 +17,7 @@ export const ProjectSchema = z.object({
   }),
   exemplary: z.number().positive(),
   pages: z.array(z.object({
-    title: z.string(),
     articleId: z.string().min(1),
-    slug: z.string(),
-    meta: z.object({
-      title: z.string().optional(),
-      description: z.string().optional(),
-      opengraphThumbnail: z.string().optional(),
-      keywords: z.string().optional(),
-      enabled: z.boolean()
-    }).optional(),
     id: z.string().min(1)
   })),
   fonts: z.object({

@@ -22,28 +22,12 @@ export const projectMock: Project = {
   },
   pages: [{
     id: 'pageId',
-    title: 'Page',
     articleId: 'articleId',
-    slug: '/',
-    meta: {
-      opengraphThumbnail: 'page thumbnail',
-      title: 'page title',
-      description: 'page description',
-      enabled: true,
-      keywords: 'page keywords'
-    }
+    
   },
     {
       id: 'pageId2',
-      title: 'Page 2',
       articleId: 'articleId2',
-      slug: '/2',
-      meta: {
-        opengraphThumbnail: 'page thumbnail',
-        title: 'page title',
-        description: 'page description',
-        enabled: false,
-        keywords: 'page keywords'
-      }
-    }]
+    }],
+  relations: []
 };

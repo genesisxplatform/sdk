@@ -20,49 +20,18 @@ describe('Client', () => {
     expect(() => new Client(apiUrl)).toThrow(new Error('API key is missing in the URL.'));
   });
 
-  it('returns page data', async () => {
+  it('returns page data with all articles', async () => {
     const projectId = 'projectId';
     const API_BASE_URL = 'api-test.cntrl.site';
+    const articleMock2 = { ...articleMock, id: 'articleId2' };
     const fetchesMap: Record<string, unknown> = {
       [`https://${API_BASE_URL}/projects/${projectId}?buildMode=default`]: projectMock,
       [`https://${API_BASE_URL}/projects/${projectId}/articles/articleId?buildMode=default`]: {
         article: articleMock,
         keyframes: keyframesMock
-      }
-    };
-    const apiKey = 'MY_API_KEY';
-    let fetchCalledTimes = 0;
-    const apiUrl = `https://${projectId}:${apiKey}@${API_BASE_URL}/`;
-    const fetch = async (url: string) => {
-      fetchCalledTimes += 1;
-      return Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve(fetchesMap[url]),
-        statusText: ''
-      });
-    };
-    const client = new Client(apiUrl, fetch);
-    const pageData = await client.getPageData('/');
-    expect(fetchCalledTimes).toBe(2);
-    expect(pageData.project).toEqual(projectMock);
-    expect(pageData.article).toEqual(articleMock);
-    expect(pageData.keyframes).toEqual(keyframesMock);
-    expect(pageData.meta).toEqual({
-      description: 'page description',
-      favicon: 'project favicon',
-      keywords: 'page keywords',
-      opengraphThumbnail: 'page thumbnail',
-      title: 'page title'
-    });
-  });
-
-  it('ignores page meta if it is not enabled and uses project meta instead', async () => {
-    const projectId = 'projectId';
-    const API_BASE_URL = 'api-test.cntrl.site';
-    const fetchesMap: Record<string, unknown> = {
-      [`https://${API_BASE_URL}/projects/${projectId}?buildMode=default`]: projectMock,
+      },
       [`https://${API_BASE_URL}/projects/${projectId}/articles/articleId2?buildMode=default`]: {
-        article: articleMock,
+        article: articleMock2,
         keyframes: keyframesMock
       }
     };
@@ -78,17 +47,22 @@ describe('Client', () => {
       });
     };
     const client = new Client(apiUrl, fetch);
-    const pageData = await client.getPageData('/2');
-    expect(pageData.meta).toEqual({
-      description: 'project description',
-      favicon: 'project favicon',
-      keywords: 'project keywords',
-      opengraphThumbnail: 'project opengraph',
-      title: 'project title'
+    const pageData = await client.getPageData();
+    expect(fetchCalledTimes).toBe(3);
+    expect(pageData.project).toEqual(projectMock);
+    expect(pageData.articlesData).toEqual({
+      articleId: {
+        article: articleMock,
+        keyframes: keyframesMock
+      },
+      articleId2: {
+        article: articleMock2,
+        keyframes: keyframesMock
+      }
     });
   });
 
-  it('throws an error upon page data fetch failure', async () => {
+  it('throws an error upon project fetch failure', async () => {
     const projectId = 'MY_PROJECT_ID';
     const apiKey = 'MY_API_KEY';
     const apiUrl = `https://${projectId}:${apiKey}@api.cntrl.site/`;
@@ -98,24 +72,33 @@ describe('Client', () => {
       json: () => Promise.resolve()
     });
     const client = new Client(apiUrl, fetch);
-    await expect(client.getPageData('/')).rejects.toEqual(new Error('Failed to fetch project with id #MY_PROJECT_ID: reason'));
+    await expect(client.getPageData()).rejects.toEqual(new Error('Failed to fetch project with id #MY_PROJECT_ID: reason'));
   });
 
-  it('throws an error when trying to fetch article by nonexistent slug', async () => {
-    const projectId = 'MY_PROJECT_ID';
+  it('throws an error upon article fetch failure', async () => {
+    const projectId = 'projectId';
+    const API_BASE_URL = 'api-test.cntrl.site';
+    const fetchesMap: Record<string, unknown> = {
+      [`https://${API_BASE_URL}/projects/${projectId}?buildMode=default`]: projectMock
+    };
     const apiKey = 'MY_API_KEY';
-    const apiUrl = `https://${projectId}:${apiKey}@api.cntrl.site/`;
-    const projectApiUrl = `https://api.cntrl.site/projects/${projectId}?buildMode=default`;
-    const slug = '/nonexistent-slug';
-    const fetch = (url: string) => {
+    const apiUrl = `https://${projectId}:${apiKey}@${API_BASE_URL}/`;
+    const fetch = async (url: string) => {
+      const data = fetchesMap[url];
+      if (data) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(data),
+          statusText: ''
+        });
+      }
       return Promise.resolve({
-        ok: url === projectApiUrl,
-        json: () => Promise.resolve(projectMock),
-        statusText: 'reason'
+        ok: false,
+        statusText: 'Article not found',
+        json: () => Promise.resolve()
       });
     };
     const client = new Client(apiUrl, fetch);
-    await expect(client.getPageData(slug))
-      .rejects.toEqual(new Error(`Page with a slug ${slug} was not found in project with id #${projectId}`));
+    await expect(client.getPageData()).rejects.toEqual(new Error('Failed to fetch article with id #articleId: Article not found'));
   });
 });

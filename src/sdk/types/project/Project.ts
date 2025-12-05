@@ -1,3 +1,4 @@
+import { Relation } from './Relation';
 import { Fonts } from './Fonts';
 import { Meta } from './Meta';
 import { Page } from './Page';
@@ -15,4 +16,5 @@ export interface Project {
   exemplary: number;
   pages: Page[];
   fonts: Fonts;
+  relations: Relation[];
 }

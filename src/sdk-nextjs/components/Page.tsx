@@ -19,22 +19,8 @@ export const Page: FC<PageProps> = ({ project, articlesData }) => {
   const afterBodyOpen = HTMLReactParser(project.html.afterBodyOpen);
   const beforeBodyClose = HTMLReactParser(project.html.beforeBodyClose);
   const startScene = Object.keys(articlesData)[0];
-  const nextScene = Object.keys(articlesData)[1];
-  const relations = [
-    {
-      type: 'slide' as const,
-      from: startScene,
-      to: nextScene,
-      direction: 'east' as const,
-    },
-    {
-      type: 'slide' as const,
-      from: nextScene,
-      to: startScene,
-      direction: 'west' as const,
-    }
-  ];
   const scenes = Object.values(articlesData).map(({ article }) => ({ id: article.id }));
+  const { relations } = project;
   return (
     <>
       <CNTRLHead project={project} />

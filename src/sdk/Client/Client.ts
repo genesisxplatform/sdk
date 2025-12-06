@@ -1,7 +1,5 @@
 import fetch from 'isomorphic-fetch';
 import { URL } from 'url';
-import { Meta } from '../types/project/Meta';
-import { Page, PageMeta } from '../types/project/Page';
 import { Project } from '../types/project/Project';
 import { Article } from '../types/article/Article';
 import { KeyframeAny } from '../types/keyframe/Keyframe';
@@ -24,38 +22,19 @@ export class Client {
     }
   }
 
-  private static getPageMeta(projectMeta: Meta, pageMeta: PageMeta): Meta {
-    return pageMeta.enabled ? {
-      title: pageMeta.title ? pageMeta.title : projectMeta.title ?? '',
-      description: pageMeta.description ? pageMeta.description : projectMeta.description ?? '',
-      keywords: pageMeta.keywords ? pageMeta.keywords : projectMeta.keywords ?? '',
-      opengraphThumbnail: pageMeta.opengraphThumbnail ? pageMeta.opengraphThumbnail : projectMeta.opengraphThumbnail ?? '',
-      favicon: projectMeta.favicon ?? ''
-    } : projectMeta;
-  }
-
-  async getPageData(pageSlug: string, buildMode: 'default' | 'self-hosted' = 'default'): Promise<CntrlPageData> {
+  async getPageData(buildMode: 'default' | 'self-hosted' = 'default'): Promise<CntrlPageData> {
     try {
       const project = await this.fetchProject(buildMode);
-      const articleId = this.findArticleIdByPageSlug(pageSlug, project.pages);
-      const { article, keyframes } = await this.fetchArticle(articleId, buildMode);
-      const page = project.pages.find(page => page.slug === pageSlug)!;
-      const meta = Client.getPageMeta(project.meta, page?.meta!);
+      const articlesIds = project.pages.map(page => page.articleId);
+      const articlesDataArr = await Promise.all(articlesIds.map(articleId => this.fetchArticle(articleId, buildMode)));
+      const articlesData = articlesDataArr.reduce<Record<string, ArticleData>>((acc, articleData) => {
+        acc[articleData.article.id] = articleData;
+        return acc;
+      }, {});
       return {
         project,
-        article,
-        keyframes,
-        meta
+        articlesData
       };
-    } catch (e) {
-      throw e;
-    }
-  }
-
-  async getProjectPagesPaths(): Promise<string[]> {
-    try {
-      const { pages } = await this.fetchProject();
-      return pages.map(p => p.slug);
     } catch (e) {
       throw e;
     }
@@ -93,15 +72,6 @@ export class Client {
     const keyframes = KeyframesSchema.parse(data.keyframes);
     return { article, keyframes };
   }
-
-  private findArticleIdByPageSlug(slug: string, pages: Page[]): string {
-    const { username: projectId } = this.url;
-    const page = pages.find((page) => page.slug === slug);
-    if (!page) {
-      throw new Error(`Page with a slug ${slug} was not found in project with id #${projectId}`);
-    }
-    return page.articleId;
-  }
 }
 
 interface FetchImplResponse {
@@ -115,7 +85,7 @@ interface ArticleData {
   article: Article;
   keyframes: KeyframeAny[];
 }
-interface CntrlPageData extends ArticleData {
+interface CntrlPageData {
   project: Project;
-  meta: Meta;
+  articlesData: Record<string, ArticleData>;
 }

@@ -1,33 +1,41 @@
-import React, { FC, useMemo } from 'react';
+import { FC } from 'react';
 import HTMLReactParser from 'html-react-parser';
-import { Article } from './Article';
-import { KeyframesContext } from '../provider/KeyframesContext';
 import { CNTRLHead } from './Head';
-import { Keyframes } from '../provider/Keyframes';
 import { Project } from '../../sdk/types/project/Project';
 import { Article as TArticle } from '../../sdk/types/article/Article';
-import { Meta } from '../../sdk/types/project/Meta';
 import { KeyframeAny } from '../../sdk/types/keyframe/Keyframe';
+import { TransitionMachineContext } from '../provider/TransitionMachineContext';
+import { Scenes } from './Scenes/Scenes';
 
 export interface PageProps {
-  article: TArticle;
   project: Project;
-  meta: Meta;
-  keyframes: KeyframeAny[];
-  sectionData: Record<SectionName, any>;
+  articlesData: Record<string, {
+    article: TArticle;
+    keyframes: KeyframeAny[];
+  }>;
 }
 
-export const Page: FC<PageProps> = ({ article, project, meta, keyframes, sectionData }) => {
+export const Page: FC<PageProps> = ({ project, articlesData }) => {
   const afterBodyOpen = HTMLReactParser(project.html.afterBodyOpen);
   const beforeBodyClose = HTMLReactParser(project.html.beforeBodyClose);
-  const keyframesRepo = useMemo(() => new Keyframes(keyframes), [keyframes]);
+  const startScene = Object.keys(articlesData)[0];
+  const scenes = Object.values(articlesData).map(({ article }) => ({ id: article.id }));
+  const { relations } = project;
   return (
     <>
-      <CNTRLHead project={project} meta={meta} />
+      <CNTRLHead project={project} />
       {afterBodyOpen}
-      <KeyframesContext.Provider value={keyframesRepo}>
-        <Article article={article} sectionData={sectionData} />
-      </KeyframesContext.Provider>
+      <TransitionMachineContext.Provider
+        options={{
+          input: {
+            startScene,
+            relations,
+            scenes,
+          }
+        }}
+      >
+        <Scenes articlesData={articlesData} />
+      </TransitionMachineContext.Provider>
       {beforeBodyClose}
     </>
   );

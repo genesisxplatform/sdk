@@ -9,17 +9,28 @@ import { ArticleWrapper } from './ArticleWrapper';
 import { InteractionsProvider } from '../provider/InteractionsContext';
 import { WebglContextManagerContext } from '../provider/WebGLContextManagerContext';
 import { WebGLContextManager } from '@cntrl-site/effects';
+import { KeyframesContext } from '../provider/KeyframesContext';
+import { Keyframes } from '../provider/Keyframes';
+import { KeyframeAny } from '../../sdk/types/keyframe/Keyframe';
 
 interface Props {
   article: TArticle;
-  sectionData: Record<SectionName, any>;
+  keyframes: KeyframeAny[];
+  styles: {
+    x: number;
+    y: number;
+    opacity: number;
+    startX: number;
+    startY: number;
+  } | undefined;
 }
 
-export const Article: FC<Props> = ({ article, sectionData }) => {
+export const Article: FC<Props> = ({ article, styles, keyframes }) => {
   const articleRef = useRef<HTMLDivElement | null>(null);
   const articleRectObserver = useArticleRectObserver(articleRef.current);
   const id = useId();
   const [articleHeight, setArticleHeight] = useState(1);
+  const keyframesRepo = useMemo(() => new Keyframes(keyframes), [keyframes]);
 
   useEffect(() => {
     if (!articleRectObserver) return;
@@ -33,32 +44,35 @@ export const Article: FC<Props> = ({ article, sectionData }) => {
   return (
     <ArticleRectContext.Provider value={articleRectObserver}>
       <InteractionsProvider article={article}>
-        <ArticleWrapper>
-          <div className="article" ref={articleRef}>
-            <WebglContextManagerContext.Provider value={webglContextManager}>
-              {article.sections.map((section, i) => {
-                const data = section.name ? sectionData[section.name] : {};
-                return (
-                  <Section
-                    section={section}
-                    key={section.id}
-                    data={data}
-                  >
-                    {article.sections[i].items.map(item => (
-                      <Item
-                        item={item}
-                        key={item.id}
-                        sectionId={section.id}
-                        articleHeight={articleHeight}
-                      />
-                    ))}
-                  </Section>
-                );
-              })}
-            </WebglContextManagerContext.Provider>
+        <KeyframesContext.Provider value={keyframesRepo}>
+          <ArticleWrapper id={article.id} styles={styles}>
+            <div className="article" ref={articleRef}>
+              <WebglContextManagerContext.Provider value={webglContextManager}>
+                {article.sections.map((section, i) => {
+                  const data = {};
+                  return (
+                    <Section
+                      section={section}
+                      key={section.id}
+                      data={data}
+                    >
+                      {article.sections[i].items.map(item => (
+                        <Item
+                          item={item}
+                          key={item.id}
+                          sectionId={section.id}
+                          articleHeight={articleHeight}
+                        />
+                      ))}
+                    </Section>
+                  );
+                })}
+              </WebglContextManagerContext.Provider>
 
-          </div>
-        </ArticleWrapper>
+            </div>
+          </ArticleWrapper>
+        </KeyframesContext.Provider>
+        
         <JSXStyle id={id}>{`
        .article {
          position: relative;
@@ -69,5 +83,3 @@ export const Article: FC<Props> = ({ article, sectionData }) => {
     </ArticleRectContext.Provider>
   );
 };
-
-type SectionName = string;

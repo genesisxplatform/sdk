@@ -1,5 +1,6 @@
 import { Article } from '../../sdk/types/article/Article';
 import { Section, SectionHeight } from '../../sdk/types/article/Section';
+import { KeyframeAny } from '../../sdk/types/keyframe/Keyframe';
 import { Project } from '../../sdk/types/project/Project';
 import { CustomItemRegistry } from './CustomItemRegistry';
 import { CustomSectionRegistry } from './CustomSectionRegistry';
@@ -7,7 +8,7 @@ import { components, Component as TComponent } from '@cntrl-site/components';
 
 interface SdkContextInitProps {
   project: Project;
-  article: Article;
+  articles: Article[];
 }
 
 export class CntrlSdkContext {
@@ -35,11 +36,13 @@ export class CntrlSdkContext {
     );
   }
 
-  init({ project, article }: SdkContextInitProps) {
+  init({ project, articles }: SdkContextInitProps) {
     this.setComponents(components);
     this.setExemplary(project.exemplary);
     this.setFonts(project.fonts);
-    this.setSectionsHeight(article.sections);
+    for (const article of articles) {
+      this.setSectionsHeight(article.sections);
+    }
   }
 
   private setExemplary(exemplary: number) {

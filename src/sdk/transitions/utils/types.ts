@@ -25,7 +25,7 @@ export type ActiveTransition = {
   startY: number;
   currentX: number;
   currentY: number;
-}
+};
 
 export type SettlingTransition = {
   stage: 'settling';
@@ -46,7 +46,7 @@ export type InstantTransition = {
 export type TransitionScene = {
   id: string;
   styles: TransitionSceneStyle;
-}
+};
 
 export type TransitionSceneStyle = {
   startX: number;

@@ -22,6 +22,7 @@ export type { ItemArea } from './sdk/types/article/ItemArea';
 export type { ItemState, ItemStateParams, StateParams, ItemStatesMap } from './sdk/types/article/ItemState';
 export type { Interaction, InteractionItemTrigger, InteractionScrollTrigger, InteractionState } from './sdk/types/article/Interaction';
 export type { Project } from './sdk/types/project/Project';
+export type { TFixedLayer, FixedLayerTransition, TransitionTiming } from './sdk/types/project/FixedLayer';
 export type { Meta } from './sdk/types/project/Meta';
 export type { KeyframeValueMap, KeyframeAny } from './sdk/types/keyframe/Keyframe';
 export type { CompoundSettings } from './sdk/types/article/CompoundSettings';

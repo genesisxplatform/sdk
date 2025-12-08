@@ -2,6 +2,7 @@ import { Relation } from './Relation';
 import { Fonts } from './Fonts';
 import { Meta } from './Meta';
 import { Page } from './Page';
+import { TFixedLayer } from './FixedLayer';
 
 export interface AdditionalHTML {
   head: string;
@@ -17,4 +18,6 @@ export interface Project {
   pages: Page[];
   fonts: Fonts;
   relations: Relation[];
+  foreground: TFixedLayer;
+  background: TFixedLayer;
 }

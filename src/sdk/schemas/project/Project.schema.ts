@@ -1,5 +1,30 @@
 import { z } from 'zod';
 import { FontFileTypes } from '../../types/project/Fonts';
+import { ItemSchema } from '../article/Item.schema';
+import { SectionMediaSchema } from '../article/Section.schema';
+import { InteractionSchema } from '../article/Interaction.schema';
+
+const FixedLayerTransitionSchema = z.object({
+  from: z.string(),
+  to: z.string(),
+  itemsTransitions: z.record(z.string(), z.record(z.string(), z.object({
+    timing: z.string(),
+    duration: z.number(),
+    delay: z.number()
+  }))),
+  id: z.string()
+});
+
+export const FixedLayerSchema = z.object({
+  id: z.string().min(1),
+  items: z.array(ItemSchema),
+  name: z.string().optional(),
+  hidden: z.boolean(),
+  color: z.nullable(z.string()),
+  media: SectionMediaSchema.optional(),
+  interactions: z.array(InteractionSchema),
+  transitions: z.array(FixedLayerTransitionSchema),
+});
 
 export const ProjectSchema = z.object({
   id: z.string().min(1),
@@ -40,5 +65,7 @@ export const ProjectSchema = z.object({
     to: z.string().min(1),
     type: z.enum(['slide', 'fade']),
     direction: z.enum(['north', 'east', 'south', 'west'])
-  }))
+  })),
+  foreground: FixedLayerSchema,
+  background: FixedLayerSchema
 });

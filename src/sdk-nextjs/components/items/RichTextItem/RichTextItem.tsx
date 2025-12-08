@@ -64,6 +64,13 @@ export const RichTextItem: FC<ItemProps<TRichTextItem>> = ({ item, sectionId, on
           fontSize: `${Math.round(fontSize * exemplary)}px`,
           lineHeight: `${lineHeight * exemplary}px`,
           willChange: blur !== 0 && blur !== undefined ? 'transform' : 'unset',
+          fontFamily: getFontFamilyValue(item.params.typeFace),
+          fontWeight: item.params.fontWeight,
+          fontStyle: item.params.fontStyle ? item.params.fontStyle : 'normal',
+          verticalAlign: item.params.verticalAlign,
+          fontVariant: item.params.fontVariant,
+          color: color.fmt('rgba'),
+          textTransform: item.params.textTransform,
           transition
         }}
       >
@@ -71,29 +78,6 @@ export const RichTextItem: FC<ItemProps<TRichTextItem>> = ({ item, sectionId, on
       </div>
       <JSXStyle id={id}>
         {styles}
-        {`
-          .rich-text-wrapper-${item.id} {
-            font-size: ${item.params.fontSize * 100}vw;
-            line-height: ${item.params.lineHeight * 100}vw;
-            letter-spacing: ${item.params.letterSpacing * 100}vw;
-            word-spacing: ${item.params.wordSpacing * 100}vw;
-            font-family: ${getFontFamilyValue(item.params.typeFace)};
-            font-weight: ${item.params.fontWeight};
-            font-style: ${item.params.fontStyle ? item.params.fontStyle : 'normal'};
-            vertical-align: ${item.params.verticalAlign};
-            font-variant: ${item.params.fontVariant};
-            color: ${color.fmt('rgba')};
-            transform: rotate(${item.area.angle}deg);
-            filter: ${item.params.blur !== 0 ? `blur(${item.params.blur * 100}vw)` : 'unset'};
-            text-transform: ${item.params.textTransform};
-            ${item.params.blur !== 0 ? 'will-change: transform;' : ''}
-          }
-          @supports not (color: oklch(42% 0.3 90 / 1)) {
-            .rich-text-wrapper-${item.id} {
-              color: ${color.fmt('rgba')};
-            }
-          }
-        `}
       </JSXStyle>
     </>
   );

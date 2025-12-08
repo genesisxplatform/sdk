@@ -67,7 +67,7 @@ export class RichTextConverter {
           const ta = richText.params.textAlign;
           styleRules.push(`
             .${blockClass} {
-              display: 'block';
+              display: block;
               text-align: ${ta};
               white-space: pre-wrap;
               overflow-wrap: break-word;

@@ -5,7 +5,7 @@ import { Section } from './Section/Section';
 import { Item } from './items/Item';
 import { useArticleRectObserver } from '../utils/ArticleRectManager/useArticleRectObserver';
 import { ArticleRectContext } from '../provider/ArticleRectContext';
-import { ArticleWrapper } from './ArticleWrapper';
+import { Scene } from './Scene';
 import { InteractionsProvider } from '../provider/InteractionsContext';
 import { WebglContextManagerContext } from '../provider/WebGLContextManagerContext';
 import { WebGLContextManager } from '@cntrl-site/effects';
@@ -45,7 +45,7 @@ export const Article: FC<Props> = ({ article, styles, keyframes }) => {
     <ArticleRectContext.Provider value={articleRectObserver}>
       <InteractionsProvider article={article}>
         <KeyframesContext.Provider value={keyframesRepo}>
-          <ArticleWrapper id={article.id} styles={styles}>
+          <Scene id={article.id} styles={styles}>
             <div className="article" ref={articleRef}>
               <WebglContextManagerContext.Provider value={webglContextManager}>
                 {article.sections.map((section, i) => {
@@ -70,7 +70,7 @@ export const Article: FC<Props> = ({ article, styles, keyframes }) => {
               </WebglContextManagerContext.Provider>
 
             </div>
-          </ArticleWrapper>
+          </Scene>
         </KeyframesContext.Provider>
         
         <JSXStyle id={id}>{`

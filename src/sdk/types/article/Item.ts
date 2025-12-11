@@ -217,9 +217,23 @@ export interface StickyParams {
   to?: number;
 }
 
-export interface Link {
+export type Link = UrlLink | ClickLink;
+
+interface UrlLink {
   url: string;
   target: string;
+}
+
+interface UrlLink {
+  url: string;
+  target: string;
+}
+
+interface ClickLink {
+  value: string;
+  animation: 'fade' | 'slide' | 'reveal';
+  duration: number;
+  direction: 'north' | 'west' | 'south' | 'east';
 }
 
 export type VideoItem = Item<ArticleItemType.Video>;

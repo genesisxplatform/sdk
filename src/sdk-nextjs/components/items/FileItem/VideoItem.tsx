@@ -107,7 +107,7 @@ export const VideoItem: FC<ItemProps<TVideoItem>> = ({ item, sectionId, onResize
   }, [videoRef, ref, userPaused, isVideoInteracted]);
 
   return (
-    <LinkWrapper url={item.link?.url} target={item.link?.target}>
+    <LinkWrapper link={item.link}>
       <div
         className={`video-wrapper-${item.id}`}
         ref={setRef}

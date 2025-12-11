@@ -60,8 +60,10 @@ export function useKeyframeValue<T>(
 
   useEffect(() => {
     if (!articleRectObserver || !animator) return;
-    const scroll = articleRectObserver.getSectionScroll(sectionId);
-    handleKeyframeValue(scroll);
+    return articleRectObserver.on('init', () => {
+      const scroll = articleRectObserver.getSectionScroll(sectionId);
+      handleKeyframeValue(scroll);
+    });
   }, [articleRectObserver, handleKeyframeValue, animator]);
 
   useEffect(() => {
@@ -70,7 +72,7 @@ export function useKeyframeValue<T>(
       const scroll = articleRectObserver.getSectionScroll(sectionId);
       handleKeyframeValue(scroll);
     });
-  }, [handleKeyframeValue, articleRectObserver, animator]);
+  }, [articleRectObserver, handleKeyframeValue, animator]);
 
   useEffect(() => {
     if (!articleRectObserver || !animator) return;
@@ -78,6 +80,6 @@ export function useKeyframeValue<T>(
       const scroll = articleRectObserver.getSectionScroll(sectionId);
       handleKeyframeValue(scroll);
     });
-  }, [handleKeyframeValue, articleRectObserver, animator]);
+  }, [articleRectObserver, handleKeyframeValue, animator]);
   return keyframes.length ? adjustedValue : paramValue;
 }

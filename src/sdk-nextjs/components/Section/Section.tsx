@@ -67,24 +67,24 @@ export const Section: FC<Props> = ({ section, data, children }) => {
         {children}
       </div>
       <JSXStyle id={id}>{`
-         .section-${section.id} {
-            height: ${getSectionHeight(height)};
-            position: relative;
-            display: ${hidden ? 'none' : 'block'};
-            background-color: ${CntrlColor.parse(color ?? DEFAULT_COLOR).fmt('rgba')};
-         }
-         .section-background-overlay-${section.id} {
-            height: ${getSectionHeight(height)};
-            width: 100%;
-            position: relative;
-            overflow: clip;
-         }
-         .section-background-wrapper-${section.id} {
-            transform: ${media?.position === 'fixed' ? 'translateY(-100vh)' : 'unset'};
-            position: relative;
-            height: ${media?.position === 'fixed' ? `calc(${getSectionHeight(height)} + 200vh)` : getSectionHeight(height)};
-            width: 100%;
-         }
+        .section-${section.id} {
+          height: ${getSectionHeight(height)};
+          position: relative;
+          display: ${hidden ? 'none' : 'block'};
+          background-color: ${CntrlColor.parse(color ?? DEFAULT_COLOR).fmt('rgba')};
+        }
+        .section-background-overlay-${section.id} {
+          height: ${getSectionHeight(height)};
+          width: 100%;
+          position: relative;
+          overflow: clip;
+        }
+        .section-background-wrapper-${section.id} {
+          transform: ${media?.position === 'fixed' ? 'translateY(-100vh)' : 'unset'};
+          position: relative;
+          height: ${media?.position === 'fixed' ? `calc(${getSectionHeight(height)} + 200vh)` : getSectionHeight(height)};
+          width: 100%;
+        }
       `}
     </JSXStyle>
     </>

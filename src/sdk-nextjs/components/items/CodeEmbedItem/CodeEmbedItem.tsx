@@ -67,7 +67,7 @@ export const CodeEmbedItem: FC<ItemProps<TCodeEmbedItem>> = ({ item, sectionId, 
   }, [isInteractive, onVisibilityChange]);
 
   return (
-    <LinkWrapper url={item.link?.url} target={item.link?.target}>
+    <LinkWrapper link={item.link}>
       <div
         className={`embed-wrapper-${item.id}`}
         style={{

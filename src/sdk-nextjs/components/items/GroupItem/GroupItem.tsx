@@ -10,7 +10,7 @@ import { getStyleFromItemStateAndParams } from '../../../utils/getStyleFromItemS
 import { CompoundChild } from '../CompoundItem/CompoundChild';
 import { GroupItem as TGroupItem } from '../../../../sdk/types/article/Item';
 
-export const GroupItem: FC<ItemProps<TGroupItem>> = ({ item, sectionId, onResize, interactionCtrl, onVisibilityChange, isInCompound }) => {
+export const GroupItem: FC<ItemProps<TGroupItem>> = ({ item, sectionId, onResize, interactionCtrl, onVisibilityChange, isInCompound, isInFixedLayer }) => {
   const id = useId();
   const { items } = item;
   const itemAngle = useItemAngle(item, sectionId);
@@ -41,6 +41,7 @@ export const GroupItem: FC<ItemProps<TGroupItem>> = ({ item, sectionId, onResize
         >
           {items && items.map(item => isInCompound ? (
             <CompoundChild
+              isInFixedLayer={isInFixedLayer}
               item={item}
               key={item.id}
               sectionId={sectionId}
@@ -49,6 +50,7 @@ export const GroupItem: FC<ItemProps<TGroupItem>> = ({ item, sectionId, onResize
           ) : (
             <Item
               item={item}
+              isInFixedLayer={isInFixedLayer}
               key={item.id}
               sectionId={sectionId}
               isParentVisible={isInteractive}

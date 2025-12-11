@@ -5,8 +5,6 @@ import { KeyframesContext } from '../provider/KeyframesContext';
 import { AnimationData, Animator } from '../utils/Animator/Animator';
 import { ItemAny } from '../../sdk/types/article/Item';
 import { KeyframeType } from '../../sdk/types/keyframe/Keyframe';
-import { TransitionMachineContext } from '../provider/TransitionMachineContext';
-import { useActorRef } from '@xstate/react';
 
 export type AnimatorGetter<T> = (animator: Animator, scroll: number, value: T) => T;
 type ItemParamGetter<T> = (item: ItemAny) => T;
@@ -20,7 +18,6 @@ export function useKeyframeValue<T>(
   sectionId: string,
   deps: DependencyList = emptyDeps
 ): T {
-  const actorRef = TransitionMachineContext.useActorRef();
   const animatorGetterRef = useRef(animatorGetter);
   const itemParamsGetterRef = useRef(itemParamsGetter);
 
@@ -71,10 +68,10 @@ export function useKeyframeValue<T>(
 
   useEffect(() => {
     if (!articleRectObserver || !animator) return;
-    // return articleRectObserver.on('resize', () => {
-    //   const scroll = articleRectObserver.getSectionScroll(sectionId);
-    //   handleKeyframeValue(scroll);
-    // });
+    return articleRectObserver.on('resize', () => {
+      const scroll = articleRectObserver.getSectionScroll(sectionId);
+      handleKeyframeValue(scroll);
+    });
   }, [articleRectObserver, handleKeyframeValue, animator]);
 
   useEffect(() => {

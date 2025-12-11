@@ -224,11 +224,6 @@ interface UrlLink {
   target: string;
 }
 
-interface UrlLink {
-  url: string;
-  target: string;
-}
-
 interface ClickLink {
   value: string;
   animation: 'fade' | 'slide' | 'reveal';

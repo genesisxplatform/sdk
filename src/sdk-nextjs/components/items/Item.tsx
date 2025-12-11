@@ -37,6 +37,7 @@ export interface ItemProps<I extends ItemAny> {
   interactionCtrl?: ReturnType<typeof useItemInteractionCtrl>;
   onVisibilityChange: (isVisible: boolean) => void;
   isInCompound?: boolean;
+  isInFixedLayer?: boolean;
 }
 
 export interface ItemWrapperProps {
@@ -44,6 +45,7 @@ export interface ItemWrapperProps {
   sectionId: string;
   articleHeight?: number;
   isInGroup?: boolean;
+  isInFixedLayer?: boolean;
   isParentVisible?: boolean;
 }
 
@@ -54,7 +56,7 @@ const stickyFix = `
 
 const noop = () => null;
 
-export const Item: FC<ItemWrapperProps> = ({ item, sectionId, articleHeight, isParentVisible = true, isInGroup = false }) => {
+export const Item: FC<ItemWrapperProps> = ({ item, sectionId, articleHeight, isParentVisible = true, isInGroup = false, isInFixedLayer = false }) => {
   const itemWrapperRef = useRef<HTMLDivElement | null>(null);
   const itemInnerRef = useRef<HTMLDivElement | null>(null);
   const rectObserver = useContext(ArticleRectContext);
@@ -67,7 +69,7 @@ export const Item: FC<ItemWrapperProps> = ({ item, sectionId, articleHeight, isP
   const [wrapperHeight, setWrapperHeight] = useState<undefined | number>(undefined);
   const [itemHeight, setItemHeight] = useState<undefined | number>(undefined);
   const itemScale = useItemScale(item, sectionId);
-  const interactionCtrl = useItemInteractionCtrl(item.id);
+  const interactionCtrl = useItemInteractionCtrl(item.id, isInFixedLayer);
   const triggers = useItemTriggers(interactionCtrl);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDraggingActive, setIsDraggingActive] = useState(false);
@@ -184,6 +186,7 @@ export const Item: FC<ItemWrapperProps> = ({ item, sectionId, articleHeight, isP
               sectionId={sectionId}
               onResize={handleItemResize}
               articleHeight={articleHeight}
+              isInFixedLayer={isInFixedLayer}
               interactionCtrl={interactionCtrl}
               onVisibilityChange={handleVisibilityChange}
             />

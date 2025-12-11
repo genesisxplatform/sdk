@@ -14,15 +14,16 @@ interface Props {
   } | undefined;
 }
 
-export const ArticleWrapper: FC<PropsWithChildren<Props>> = ({ children, id, styles: sceneStyles }) => {
+export const Scene: FC<PropsWithChildren<Props>> = ({ children, id, styles: sceneStyles }) => {
   const { layoutDeviation } = useLayoutDeviation();
   const layoutDeviationStyle = { '--layout-deviation': layoutDeviation } as CSSProperties;
   const sceneRef = useRef<HTMLDivElement | null>(null);
   const actorRef = TransitionMachineContext.useActorRef();
-  const { isControlledTransitioning, isSettling, isInstantTransitioning } = TransitionMachineContext.useSelector((state) => ({
+  const { isControlledTransitioning, isSettling, isInstantTransitioning, stateValue } = TransitionMachineContext.useSelector((state) => ({
    isControlledTransitioning: state.matches('transitioning'),
    isSettling: state.matches('settling'),
    isInstantTransitioning: state.matches('instant_transitioning'),
+   stateValue: state.value
   }));
   const type = TransitionMachineContext.useSelector((state) => {
     const { transition } = state.context;
@@ -145,25 +146,26 @@ export const ArticleWrapper: FC<PropsWithChildren<Props>> = ({ children, id, sty
   const transitionStyle = type === 'slide' ? 'transform' : 'opacity';
 
   return (
-    <div
-      ref={sceneRef}
-      className="article-wrapper"
-      style={{
-        ...layoutDeviationStyle,
-        width: '100vw',
-        height: '100%',
-        position: isFixed ? 'fixed' : 'absolute',
-        transform: `translate3d(${sceneStyles?.x}px, ${sceneStyles?.y}px, 0)`,
-        transition: isSettling || isInstantTransitioning ? `${transitionStyle} 0.25s ease-out` : 'none',
-        overflowY: isFixed ? 'hidden' : 'auto',
-        opacity: sceneStyles?.opacity ?? 1
-      }}
-    >
-      {children}
-    </div>
+    <>
+      <div
+        ref={sceneRef}
+        className="article-wrapper"
+        style={{
+          ...layoutDeviationStyle,
+          width: '100vw',
+          height: '100%',
+          position: isFixed ? 'fixed' : 'absolute',
+          transform: `translate3d(${sceneStyles?.x}px, ${sceneStyles?.y}px, 0)`,
+          transition: isSettling || isInstantTransitioning ? `${transitionStyle} 0.25s ease-out` : 'none',
+          overflowY: isFixed ? 'hidden' : 'scroll',
+          opacity: sceneStyles?.opacity ?? 1
+        }}
+      >
+        {children}
+      </div>
+    </>
   );
 };
-
 
 function isTransitionDisabled(transitionReady: { north: boolean; east: boolean; south: boolean; west: boolean; }) {
   return !transitionReady.north && !transitionReady.east && !transitionReady.south && !transitionReady.west;
@@ -181,7 +183,7 @@ function canTransition(direction: Direction, el: HTMLElement) {
     case 'north':
       return el.scrollTop === 0;
     case 'south': {
-      const isAllowed = el.scrollTop + el.clientHeight >= el.scrollHeight;
+      const isAllowed = el.scrollTop + el.clientHeight + 1 >= el.scrollHeight;
       return isAllowed;
     }
     case 'west':

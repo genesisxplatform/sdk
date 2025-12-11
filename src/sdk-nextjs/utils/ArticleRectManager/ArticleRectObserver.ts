@@ -2,18 +2,21 @@ import { EventEmitter } from '../EventEmitter';
 import ResizeObserver from 'resize-observer-polyfill';
 
 interface EventMap {
+  'init': undefined;
   'scroll': undefined;
   'resize': DOMRect;
 }
 
 export class ArticleRectObserver extends EventEmitter<EventMap> {
   private resizeObserver: ResizeObserver;
-  private articleWidth: number = 0;
+  private articleWidth: number = 1;
   private registry: Map<string, HTMLElement> = new Map();
   private scrollPos: number = window.scrollY;
   private animationFrame: number = NaN;
   private parent: HTMLElement | undefined = undefined;
   private sectionsScrollMap: Map<string, number> = new Map();
+  private previousParentWidth: number | null = null;
+  private isInitialized: boolean = false;
 
   constructor() {
     super();
@@ -45,18 +48,37 @@ export class ArticleRectObserver extends EventEmitter<EventMap> {
 
   init(parent: HTMLElement) {
     this.parent = parent;
+    const scrollableParent = parent.parentElement;
+    const parentBoundary = parent.getBoundingClientRect();
+    if (!scrollableParent) {
+      throw new Error('Scrollable parent not found');
+    }
+    const articleWidth = parentBoundary.width;
+    this.articleWidth = articleWidth;
+    this.previousParentWidth = articleWidth;
+    this.setScroll(scrollableParent.scrollTop / articleWidth);
     const onScroll = () => {
-      this.handleScroll(window.scrollY);
+      this.handleScroll(scrollableParent.scrollTop);
       if (!isNaN(this.animationFrame)) return;
       this.animationFrame = window.requestAnimationFrame(() => {
         this.animationFrame = NaN;
         this.emit('scroll', undefined);
       });
     };
-    window.addEventListener('scroll', onScroll);
+    scrollableParent.addEventListener('scroll', onScroll);
+    for (const sectionId of this.registry.keys()) {
+      const el = this.registry.get(sectionId);
+      if (!el) continue;
+      const rect = el.getBoundingClientRect();
+      this.sectionsScrollMap.set(sectionId, rect.top - parentBoundary.top);
+    }
+    this.isInitialized = true;
+    this.emit('init', undefined);
     return () => {
       this.parent = undefined;
-      window.removeEventListener('scroll', onScroll);
+      this.isInitialized = false;
+      this.previousParentWidth = null;
+      scrollableParent.removeEventListener('scroll', onScroll);
       if (!isNaN(this.animationFrame)) {
         window.cancelAnimationFrame(this.animationFrame);
         this.animationFrame = NaN;
@@ -80,7 +102,14 @@ export class ArticleRectObserver extends EventEmitter<EventMap> {
   private handleResize() {
     if (!this.parent) return;
     const parentBoundary = this.parent.getBoundingClientRect();
-    this.articleWidth = parentBoundary.width;
+    const newWidth = parentBoundary.width;
+    if (!this.isInitialized || this.previousParentWidth === newWidth) {
+      this.articleWidth = newWidth;
+      this.previousParentWidth = newWidth;
+      return;
+    }
+    this.articleWidth = newWidth;
+    this.previousParentWidth = newWidth;
     this.setScroll(window.scrollY / this.articleWidth);
     this.emit('resize', parentBoundary);
     for (const sectionId of this.registry.keys()) {

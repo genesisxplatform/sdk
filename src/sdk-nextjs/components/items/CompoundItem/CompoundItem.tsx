@@ -25,7 +25,7 @@ export const CompoundItem: FC<ItemProps<TCompoundItem>> = ({ item, sectionId, on
     onVisibilityChange?.(isInteractive);
   }, [isInteractive, onVisibilityChange]);
   return (
-    <LinkWrapper url={item.link?.url} target={item.link?.target}>
+    <LinkWrapper link={item.link}>
       <>
         <div
           className={`compound-${item.id}`}

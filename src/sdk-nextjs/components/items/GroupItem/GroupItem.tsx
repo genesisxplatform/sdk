@@ -26,7 +26,7 @@ export const GroupItem: FC<ItemProps<TGroupItem>> = ({ item, sectionId, onResize
     onVisibilityChange?.(isInteractive);
   }, [isInteractive, onVisibilityChange]);
   return (
-    <LinkWrapper url={item.link?.url} target={item.link?.target}>
+    <LinkWrapper link={item.link}>
       <>
         <div
           className={`group-${item.id}`}

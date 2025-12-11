@@ -1,10 +1,9 @@
-import { FC, useEffect, useId, useMemo, useState } from 'react';
+import { FC, useEffect, useId, useState } from 'react';
 import JSXStyle from 'styled-jsx/style';
 import { ItemProps } from '../Item';
 import { LinkWrapper } from '../LinkWrapper';
 import { useRectangleItem } from './useRectangleItem';
 import { useItemAngle } from '../useItemAngle';
-import { useCntrlContext } from '../../../provider/useCntrlContext';
 import { useRegisterResize } from '../../../common/useRegisterResize';
 import { getStyleFromItemStateAndParams } from '../../../utils/getStyleFromItemStateAndParams';
 import { getFill } from '../../../utils/getFill';
@@ -47,7 +46,7 @@ export const RectangleItem: FC<ItemProps<TRectangleItem>> = ({ item, sectionId, 
     : 'transparent';
 
   return (
-    <LinkWrapper url={item.link?.url} target={item.link?.target}>
+    <LinkWrapper link={item.link}>
       <>
         <div
           className={`rectangle-${item.id}`}

@@ -2,10 +2,19 @@ import { z } from 'zod';
 import { ItemAreaSchema } from './ItemArea.schema';
 import { AreaAnchor, DimensionMode } from '../../types/article/ItemArea';
 
-export const Link = z.object({
+const UrlLinkSchema = z.object({
   url: z.string().min(1),
   target: z.string().min(1)
 });
+
+const ClickLinkSchema = z.object({
+  value: z.string().min(1),
+  animation: z.enum(['fade', 'slide', 'reveal']),
+  duration: z.number(),
+  direction: z.enum(['north', 'west', 'south', 'east'])
+});
+
+export const Link = z.union([UrlLinkSchema, ClickLinkSchema]);
 
 export const CompoundSettingsSchema = z.object({
   positionAnchor: z.nativeEnum(AreaAnchor),

@@ -12,7 +12,6 @@ interface Props {
 
 export const FixedLayerTransitionsProvider: FC<PropsWithChildren<Props>> = ({ fixedLayer, children }) => {
   const actorRef = TransitionMachineContext.useActorRef();
-  
   const { isSettling, isActive, startScene } = TransitionMachineContext.useSelector((state) => ({
     startScene: state.context.input.startScene,
     isSettling: state.matches('settling'),
@@ -20,22 +19,24 @@ export const FixedLayerTransitionsProvider: FC<PropsWithChildren<Props>> = ({ fi
    }));
   const transitionsRegistry = useMemo(() => new FixedLayerTransitionsRegistry(fixedLayer, startScene), [fixedLayer, startScene]);
 
-   useEffect(() => {
+  useEffect(() => {
     if (isSettling && actorRef) {
       const { context } = actorRef.getSnapshot();
       const { transition } = context;
       if (!transition || transition.stage !== 'settling') return;
       transitionsRegistry.notifyPrepareTransition(transition.to);
     }
-   }, [isSettling, actorRef, transitionsRegistry]);
-   useEffect(() => {
+  }, [isSettling, actorRef, transitionsRegistry]);
+
+  useEffect(() => {
     if (isActive && actorRef) {
       const { context } = actorRef.getSnapshot();
       const { scenes } = context;
       const [activeScene] = scenes;
       transitionsRegistry.notifyOnActiveSceneChange(activeScene.id);
     }
-   }, [isActive, actorRef, transitionsRegistry]);
+  }, [isActive, actorRef, transitionsRegistry]);
+
   return (
     <FixedLayerTransitionsContext.Provider value={transitionsRegistry}>
       {children}

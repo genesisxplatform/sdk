@@ -29,5 +29,21 @@ export const projectMock: Project = {
       id: 'pageId2',
       articleId: 'articleId2',
     }],
-  relations: []
+  relations: [],
+  foreground: {
+    id: 'foregroundId',
+    hidden: false,
+    items: [],
+    color: null,
+    transitions: [],
+    interactions: []
+  },
+  background: {
+    id: 'backgroundId',
+    hidden: false,
+    items: [],
+    color: null,
+    transitions: [],
+    interactions: []
+  }
 };

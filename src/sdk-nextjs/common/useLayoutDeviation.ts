@@ -25,5 +25,13 @@ export function useLayoutDeviation(): UseCurrentLayoutReturn {
     });
   }, [articleRectObserver, exemplary]);
 
+  useEffect(() => {
+    if (!articleRectObserver) return;
+    return articleRectObserver.on('init', () => {
+      const articleWidth = articleRectObserver.width;
+      setDeviation(articleWidth / exemplary);
+    });
+  }, [articleRectObserver, exemplary]);
+
   return { layoutDeviation: deviation };
 }

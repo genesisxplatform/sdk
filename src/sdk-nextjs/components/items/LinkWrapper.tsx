@@ -9,7 +9,7 @@ interface Props {
 
 export const LinkWrapper: React.FC<Props> = ({ link, children }) => {
   const actorRef = TransitionMachineContext.useActorRef();
-  const validUrl = link && 'url' in link ? buildValidUrl(link.url) : 'javascript:void(0)';
+  const validUrl = link && 'url' in link ? buildValidUrl(link.url) : '';
   const targetParams = link && 'target' in link && link.target === '_blank' ? { target: link.target, rel: 'noreferrer' } : {};
   const handleGoToScene = () => {
     if (!actorRef || !link || !('value' in link)) return;

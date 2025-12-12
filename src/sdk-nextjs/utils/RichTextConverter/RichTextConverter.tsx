@@ -13,9 +13,11 @@ interface StyleGroup {
 
 interface EntitiesGroup {
   link?: string;
+  value?: string;
   target?: string;
   animation?: 'fade' | 'slide' | 'reveal';
   direction?: 'north' | 'west' | 'south' | 'east';
+  duration?: number;
   stylesGroup: StyleGroup[];
   start: number;
   end: number;
@@ -100,7 +102,11 @@ export class RichTextConverter {
             offset = entity.end;
           }
           if (entity.link) {
-            kids.push(<LinkWrapper key={entity.start} link={{ url: entity.link, target: entity.target ?? '_self', animation: entity.animation ?? 'fade', direction: entity.direction ?? 'north' }}>{entityKids}</LinkWrapper>);
+            kids.push(<LinkWrapper key={entity.start} link={{ url: entity.link, target: entity.target ?? '_self' }}>{entityKids}</LinkWrapper>);
+            continue;
+          }
+          if (entity.value) {
+            kids.push(<LinkWrapper key={entity.start} link={{ value: entity.value, animation: entity.animation ?? 'fade', direction: entity.direction ?? 'north', duration: 0 }}>{entityKids}</LinkWrapper>);
             continue;
           }
           kids.push(...entityKids);
@@ -196,7 +202,8 @@ export class RichTextConverter {
           stylesGroup: [],
           start,
           end,
-          ...(entity && { link: entity.data?.url ?? '', target: entity.data?.target ?? '_self', animation: entity.data?.animation ?? 'fade', direction: entity.data?.direction ?? 'north' })
+          ...(entity && (entity.data?.type === 'url' || entity.data?.type === 'anchor') && { link: entity.data.url, target: entity.data.target ?? '_self' }),
+          ...(entity && entity.data?.type === 'scene' && { value: entity.data.value, animation: entity.data.animation ?? 'fade', direction: entity.data.direction ?? 'north', duration: entity.data.duration ?? 0 })
         });
       }
       return entitiesGroups;
@@ -227,7 +234,8 @@ export class RichTextConverter {
           stylesGroup: styleGroups.filter(s => s.start >= start && s.end <= end),
           start,
           end,
-          ...(entity && { link: entity.data?.url ?? '', target: entity.data?.target ?? '_self', animation: entity.data?.animation ?? 'fade', direction: entity.data?.direction ?? 'north' })
+          ...(entity && entity.data?.url && { link: entity.data.url, target: entity.data.target ?? '_self' }),
+          ...(entity && entity.data?.value && { value: entity.data.value, animation: entity.data.animation ?? 'fade', direction: entity.data.direction ?? 'north', duration: entity.data.duration ?? 0 })
         });
     }
 

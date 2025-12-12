@@ -6,6 +6,7 @@ import { Article as TArticle } from '../../sdk/types/article/Article';
 import { KeyframeAny } from '../../sdk/types/keyframe/Keyframe';
 import { TransitionMachineContext } from '../provider/TransitionMachineContext';
 import { Scenes } from './Scenes/Scenes';
+import { FixedLayer } from './fixedLayers/FixedLayer';
 
 export interface PageProps {
   project: Project;
@@ -34,7 +35,9 @@ export const Page: FC<PageProps> = ({ project, articlesData }) => {
           }
         }}
       >
+        {project.foreground && !project.foreground.hidden && <FixedLayer layer={project.foreground} type="foreground" />}
         <Scenes articlesData={articlesData} />
+        {project.background && !project.background.hidden && <FixedLayer layer={project.background} type="background" />}
       </TransitionMachineContext.Provider>
       {beforeBodyClose}
     </>

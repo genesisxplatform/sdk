@@ -19,11 +19,10 @@ export const Scene: FC<PropsWithChildren<Props>> = ({ children, id, styles: scen
   const layoutDeviationStyle = { '--layout-deviation': layoutDeviation } as CSSProperties;
   const sceneRef = useRef<HTMLDivElement | null>(null);
   const actorRef = TransitionMachineContext.useActorRef();
-  const { isControlledTransitioning, isSettling, isInstantTransitioning, stateValue } = TransitionMachineContext.useSelector((state) => ({
+  const { isControlledTransitioning, isSettling, isInstantTransitioning } = TransitionMachineContext.useSelector((state) => ({
    isControlledTransitioning: state.matches('transitioning'),
    isSettling: state.matches('settling'),
-   isInstantTransitioning: state.matches('instant_transitioning'),
-   stateValue: state.value
+   isInstantTransitioning: state.matches('instant_transitioning')
   }));
   const type = TransitionMachineContext.useSelector((state) => {
     const { transition } = state.context;
@@ -155,10 +154,11 @@ export const Scene: FC<PropsWithChildren<Props>> = ({ children, id, styles: scen
           width: '100vw',
           height: '100%',
           position: isFixed ? 'fixed' : 'absolute',
-          transform: `translate3d(${sceneStyles?.x}px, ${sceneStyles?.y}px, 0)`,
+          transform: sceneStyles && (sceneStyles.x !== 0 || sceneStyles.y !== 0) ? `translate(${sceneStyles.x}px, ${sceneStyles.y}px)` : 'none',
           transition: isSettling || isInstantTransitioning ? `${transitionStyle} 0.25s ease-out` : 'none',
           overflowY: isFixed ? 'hidden' : 'scroll',
-          opacity: sceneStyles?.opacity ?? 1
+          opacity: sceneStyles?.opacity ?? 1,
+          'WebkitOverflowScrolling': 'touch' // prevent glitch on Safari (fast scroll to top/bottom sides)
         }}
       >
         {children}

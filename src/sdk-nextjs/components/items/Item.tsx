@@ -1,8 +1,7 @@
-import React, {
+import {
   FC,
   useContext,
   useId,
-  useMemo,
   useRef,
   useState
 } from 'react';
@@ -15,19 +14,19 @@ import { useStickyItemTop } from './useStickyItemTop';
 import { getAnchoredItemTop } from '../../utils/getAnchoredItemTop';
 import { ArticleRectContext } from '../../provider/ArticleRectContext';
 import { useExemplary } from '../../common/useExemplary';
-import { KeyframesContext } from '../../provider/KeyframesContext';
 import { useItemInteractionCtrl } from '../../interactions/useItemInteractionCtrl';
 import { isItemType } from '../../utils/isItemType';
 import { RichTextWrapper } from './RichTextWrapper';
 import { itemsMap } from './itemsMap';
 import { useItemTriggers } from './useItemTriggers';
-import { parseSizing, useSizing } from './useSizing';
+import { useSizing } from './useSizing';
 import { useItemPointerEvents } from './useItemPointerEvents';
 import { useItemArea } from './useItemArea';
 import { useDraggable } from './useDraggable';
 import { ItemAny } from '../../../sdk/types/article/Item';
 import { ArticleItemType } from '../../../sdk/types/article/ArticleItemType';
-import { AnchorSide, AreaAnchor, PositionType } from '../../../sdk/types/article/ItemArea';
+import { AnchorSide, PositionType } from '../../../sdk/types/article/ItemArea';
+import { TransitionMachineContext } from '../../provider/TransitionMachineContext';
 
 export interface ItemProps<I extends ItemAny> {
   item: I;
@@ -87,6 +86,9 @@ export const Item: FC<ItemWrapperProps> = ({ item, sectionId, articleHeight, isP
   const ItemComponent = itemsMap[item.type] || noop;
   const sectionTop = rectObserver ? rectObserver.getSectionTop(sectionId) : 0;
   const isDraggable = 'isDraggable' in item.params ? item.params.isDraggable : false;
+  const isSceneTransitioning = TransitionMachineContext.useSelector(
+    (s) => s.matches('transitioning') || s.matches('settling') || s.matches('instant_transitioning')
+  );
   useDraggable({ draggableRef: itemInnerRef.current, isEnabled: isDraggable ?? false }, ({ startX, startY, currentX, currentY, lastX, lastY, drag }) => {
     const item = itemInnerRef.current;
     if (!item) return;
@@ -123,6 +125,11 @@ export const Item: FC<ItemWrapperProps> = ({ item, sectionId, articleHeight, isP
   const isScreenBasedBottom = positionType === PositionType.ScreenBased && anchorSide === AnchorSide.Bottom;
   const scale = innerStateProps?.styles?.scale ?? itemScale;
   const hasClickTriggers = interactionCtrl?.getHasTrigger(item.id, 'click') ?? false;
+  const scroll = rectObserver?.scroll;
+  const realTop = item.area.positionType === PositionType.ScreenBased && isSceneTransitioning && scroll !== undefined
+    ? top + scroll
+    : top;
+
   return (
     <div
       className={`item-wrapper-${item.id}`}
@@ -132,9 +139,9 @@ export const Item: FC<ItemWrapperProps> = ({ item, sectionId, articleHeight, isP
         interactionCtrl?.handleTransitionEnd?.(e.propertyName);
       }}
       style={{
-        top: isScreenBasedBottom ? 'unset' : getItemTopStyle(top, anchorSide),
+        top: isScreenBasedBottom ? 'unset' : getItemTopStyle(realTop, anchorSide),
         left: `${left * 100}vw`,
-        bottom: isScreenBasedBottom ? `${-top * 100}vw` : 'unset',
+        bottom: isScreenBasedBottom ? `${-realTop * 100}vw` : 'unset',
         ...(wrapperHeight !== undefined ? { height: `${wrapperHeight * 100}vw` } : {}),
         transition: wrapperStateProps?.transition ?? 'none'
       }}

@@ -3,6 +3,7 @@ import { Interaction } from './Interaction';
 
 export interface Article {
   id: string;
-  sections: Section[];
+  scrollableSections: Section[];
+  fixedSections: Section[];
   interactions: Interaction[];
 }

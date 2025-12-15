@@ -4,6 +4,7 @@ import { InteractionSchema } from './Interaction.schema';
 
 export const ArticleSchema = z.object({
   id: z.string().min(1),
-  sections: z.array(SectionSchema),
+  scrollableSections: z.array(SectionSchema),
+  fixedSections: z.array(SectionSchema),
   interactions: z.array(InteractionSchema)
 });

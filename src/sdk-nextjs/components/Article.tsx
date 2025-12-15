@@ -12,6 +12,7 @@ import { WebGLContextManager } from '@cntrl-site/effects';
 import { KeyframesContext } from '../provider/KeyframesContext';
 import { Keyframes } from '../provider/Keyframes';
 import { KeyframeAny } from '../../sdk/types/keyframe/Keyframe';
+import { FixedSectionLayersWrapper } from './FixedSectionLayersWrapper/FixedSectionLayersWrapper';
 
 interface Props {
   article: TArticle;
@@ -45,10 +46,22 @@ export const Article: FC<Props> = ({ article, styles, keyframes }) => {
     <ArticleRectContext.Provider value={articleRectObserver}>
       <InteractionsProvider article={article}>
         <KeyframesContext.Provider value={keyframesRepo}>
-          <Scene id={article.id} styles={styles}>
-            <div className="article" ref={articleRef}>
-              <WebglContextManagerContext.Provider value={webglContextManager}>
-                {article.sections.map((section, i) => {
+          <WebglContextManagerContext.Provider value={webglContextManager}>
+            <FixedSectionLayersWrapper styles={styles}>
+              {article.fixedSections.flatMap((section) => {
+                return section.items.map(item => (
+                  <Item
+                    item={item}
+                    key={item.id}
+                    sectionId={section.id}
+                    articleHeight={articleHeight}
+                  />
+                ))
+              })}
+            </FixedSectionLayersWrapper>
+            <Scene id={article.id} styles={styles}>
+              <div className="article" ref={articleRef}>
+                {article.scrollableSections.map((section) => {
                   const data = {};
                   return (
                     <Section
@@ -56,7 +69,7 @@ export const Article: FC<Props> = ({ article, styles, keyframes }) => {
                       key={section.id}
                       data={data}
                     >
-                      {article.sections[i].items.map(item => (
+                      {section.items.map(item => (
                         <Item
                           item={item}
                           key={item.id}
@@ -67,10 +80,9 @@ export const Article: FC<Props> = ({ article, styles, keyframes }) => {
                     </Section>
                   );
                 })}
-              </WebglContextManagerContext.Provider>
-
-            </div>
-          </Scene>
+              </div>
+            </Scene>
+          </WebglContextManagerContext.Provider>
         </KeyframesContext.Provider>
         
         <JSXStyle id={id}>{`

@@ -1,8 +1,7 @@
-import React, {
+import {
   FC,
   useContext,
   useId,
-  useMemo,
   useRef,
   useState
 } from 'react';
@@ -21,13 +20,13 @@ import { isItemType } from '../../utils/isItemType';
 import { RichTextWrapper } from './RichTextWrapper';
 import { itemsMap } from './itemsMap';
 import { useItemTriggers } from './useItemTriggers';
-import { parseSizing, useSizing } from './useSizing';
+import { useSizing } from './useSizing';
 import { useItemPointerEvents } from './useItemPointerEvents';
 import { useItemArea } from './useItemArea';
 import { useDraggable } from './useDraggable';
 import { ItemAny } from '../../../sdk/types/article/Item';
 import { ArticleItemType } from '../../../sdk/types/article/ArticleItemType';
-import { AnchorSide, AreaAnchor, PositionType } from '../../../sdk/types/article/ItemArea';
+import { AnchorSide, PositionType } from '../../../sdk/types/article/ItemArea';
 
 export interface ItemProps<I extends ItemAny> {
   item: I;
@@ -214,7 +213,7 @@ export const Item: FC<ItemWrapperProps> = ({ item, sectionId, articleHeight, isP
             .item-wrapper-${item.id} {
               position: ${item.area.positionType === PositionType.ScreenBased ? 'fixed' : 'absolute'};
               z-index: ${item.area.zIndex};
-              ${!isInGroup && stickyFix}
+              ${!isInGroup && item.sticky !== null && stickyFix}
               pointer-events: none;
               bottom: ${isScreenBasedBottom ? `${-item.area.top * 100}vw` : 'unset'};
               top: ${isScreenBasedBottom ? 'unset' : getItemTopStyle(item.area.top, item.area.anchorSide)};

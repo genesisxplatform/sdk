@@ -306,7 +306,11 @@ export class InteractionsRegistry implements InteractionsRegistryPort {
 
   private unpackItems(article: Article): ItemAny[] {
     const itemsArr = [];
-    for (const section of article.sections) {
+    for (const section of article.scrollableSections) {
+      const items = this.getNestedItems(section.items);
+      itemsArr.push(...items);
+    }
+    for (const section of article.fixedSections) {
       const items = this.getNestedItems(section.items);
       itemsArr.push(...items);
     }

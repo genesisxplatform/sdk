@@ -41,7 +41,7 @@ export class CntrlSdkContext {
     this.setExemplary(project.exemplary);
     this.setFonts(project.fonts);
     for (const article of articles) {
-      this.setSectionsHeight(article.sections);
+      this.setSectionsHeight(article.scrollableSections);
     }
   }
 

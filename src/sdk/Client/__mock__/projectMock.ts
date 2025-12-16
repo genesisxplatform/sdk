@@ -23,11 +23,13 @@ export const projectMock: Project = {
   pages: [{
     id: 'pageId',
     articleId: 'articleId',
+    isStartScene: true,
     
   },
     {
       id: 'pageId2',
       articleId: 'articleId2',
+      isStartScene: false,
     }],
   relations: [],
   foreground: {

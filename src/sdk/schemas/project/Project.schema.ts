@@ -43,7 +43,8 @@ export const ProjectSchema = z.object({
   exemplary: z.number().positive(),
   pages: z.array(z.object({
     articleId: z.string().min(1),
-    id: z.string().min(1)
+    id: z.string().min(1),
+    isStartScene: z.boolean().default(false)
   })),
   fonts: z.object({
     google: z.string(),

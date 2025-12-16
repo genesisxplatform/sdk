@@ -19,7 +19,7 @@ export interface PageProps {
 export const Page: FC<PageProps> = ({ project, articlesData }) => {
   const afterBodyOpen = HTMLReactParser(project.html.afterBodyOpen);
   const beforeBodyClose = HTMLReactParser(project.html.beforeBodyClose);
-  const startScene = Object.keys(articlesData)[0];
+  const startScene = project.pages.find(page => page.isStartScene)?.articleId ?? Object.keys(articlesData)[0];
   const scenes = Object.values(articlesData).map(({ article }) => ({ id: article.id }));
   const { relations } = project;
   return (

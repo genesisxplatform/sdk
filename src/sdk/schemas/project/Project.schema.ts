@@ -61,6 +61,7 @@ export const ProjectSchema = z.object({
       )
     }))
   }),
+  scenesAssets: z.array(z.string()),
   relations: z.array(z.object({
     from: z.string().min(1),
     to: z.string().min(1),

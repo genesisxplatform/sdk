@@ -24,7 +24,6 @@ export const projectMock: Project = {
     id: 'pageId',
     articleId: 'articleId',
     isStartScene: true,
-    
   },
     {
       id: 'pageId2',
@@ -47,5 +46,6 @@ export const projectMock: Project = {
     color: null,
     transitions: [],
     interactions: []
-  }
+  },
+  scenesAssets: []
 };

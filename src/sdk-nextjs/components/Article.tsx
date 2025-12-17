@@ -26,8 +26,8 @@ interface Props {
 }
 
 export const Article: FC<Props> = ({ article, styles, keyframes }) => {
-  const articleRef = useRef<HTMLDivElement | null>(null);
-  const articleRectObserver = useArticleRectObserver(articleRef.current);
+  const sceneRef = useRef<HTMLDivElement | null>(null);
+  const articleRectObserver = useArticleRectObserver(sceneRef.current);
   const id = useId();
   const [articleHeight, setArticleHeight] = useState(1);
   const keyframesRepo = useMemo(() => new Keyframes(keyframes), [keyframes]);
@@ -45,31 +45,32 @@ export const Article: FC<Props> = ({ article, styles, keyframes }) => {
     <ArticleRectContext.Provider value={articleRectObserver}>
       <InteractionsProvider article={article}>
         <KeyframesContext.Provider value={keyframesRepo}>
-          <Scene id={article.id} styles={styles}>
-            <div className="article" ref={articleRef}>
-              <WebglContextManagerContext.Provider value={webglContextManager}>
-                {article.sections.map((section, i) => {
-                  const data = {};
-                  return (
-                    <Section
-                      section={section}
-                      key={section.id}
-                      data={data}
-                    >
-                      {article.sections[i].items.map(item => (
-                        <Item
-                          item={item}
-                          key={item.id}
-                          sectionId={section.id}
-                          articleHeight={articleHeight}
-                        />
-                      ))}
-                    </Section>
-                  );
-                })}
-              </WebglContextManagerContext.Provider>
-
-            </div>
+          <Scene
+            id={article.id}
+            styles={styles}
+            elRef={sceneRef}
+          >
+            <WebglContextManagerContext.Provider value={webglContextManager}>
+              {article.sections.map((section, i) => {
+                const data = {};
+                return (
+                  <Section
+                    section={section}
+                    key={section.id}
+                    data={data}
+                  >
+                    {article.sections[i].items.map(item => (
+                      <Item
+                        item={item}
+                        key={item.id}
+                        sectionId={section.id}
+                        articleHeight={articleHeight}
+                      />
+                    ))}
+                  </Section>
+                );
+              })}
+            </WebglContextManagerContext.Provider>
           </Scene>
         </KeyframesContext.Provider>
         

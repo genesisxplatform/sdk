@@ -5,6 +5,7 @@ import { Direction } from '../../sdk/transitions/utils/types';
 
 interface Props {
   id: string;
+  elRef: React.RefObject<HTMLDivElement>;
   styles: {
     x: number;
     y: number;
@@ -14,10 +15,9 @@ interface Props {
   } | undefined;
 }
 
-export const Scene: FC<PropsWithChildren<Props>> = ({ children, id, styles: sceneStyles }) => {
+export const Scene: FC<PropsWithChildren<Props>> = ({ children, id, styles: sceneStyles, elRef }) => {
   const { layoutDeviation } = useLayoutDeviation();
   const layoutDeviationStyle = { '--layout-deviation': layoutDeviation } as CSSProperties;
-  const sceneRef = useRef<HTMLDivElement | null>(null);
   const actorRef = TransitionMachineContext.useActorRef();
   const { isControlledTransitioning, isSettling, isInstantTransitioning } = TransitionMachineContext.useSelector((state) => ({
    isControlledTransitioning: state.matches('transitioning'),
@@ -51,7 +51,7 @@ export const Scene: FC<PropsWithChildren<Props>> = ({ children, id, styles: scen
     const touch = e.touches[0];
     const { context } = actorRef.getSnapshot();
     const { transition, transitionReady } = context;
-    const el = sceneRef.current;
+    const el = elRef.current;
     if (!el || !transition || !('startX' in transition) || !('startY' in transition)) return;
     const deltaX = touch.clientX - transition.startX;
     const deltaY = touch.clientY - transition.startY;
@@ -94,7 +94,7 @@ export const Scene: FC<PropsWithChildren<Props>> = ({ children, id, styles: scen
   }, [actorRef]);
 
   useEffect(() => {
-    const el = sceneRef.current;
+    const el = elRef.current;
     if (!el) return;
     el.addEventListener('touchstart', handleTouchStart, { passive: true });
     el.addEventListener('touchmove', handleTouchMove, { passive: true });
@@ -107,7 +107,7 @@ export const Scene: FC<PropsWithChildren<Props>> = ({ children, id, styles: scen
   }, [handleTouchStart, handleTouchMove, handleTouchEnd]);
 
   useEffect(() => {
-    const el = sceneRef.current;
+    const el = elRef.current;
     if (!isSettling || !el) return;
     const handleTransitionEnd = (e: TransitionEvent) => {
       const { context } = actorRef.getSnapshot();
@@ -129,7 +129,7 @@ export const Scene: FC<PropsWithChildren<Props>> = ({ children, id, styles: scen
   }, [actorRef, isSettling]);
 
   useEffect(() => {
-    const scene = sceneRef.current;
+    const scene = elRef.current;
     if (!isTransitioning || isTransitioningRef.current || !scene) return;
     isTransitioningRef.current = true;
     const { context } = actorRef.getSnapshot();
@@ -147,7 +147,7 @@ export const Scene: FC<PropsWithChildren<Props>> = ({ children, id, styles: scen
   return (
     <>
       <div
-        ref={sceneRef}
+        ref={elRef}
         className="article-wrapper"
         style={{
           ...layoutDeviationStyle,

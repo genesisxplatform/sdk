@@ -48,24 +48,20 @@ export class ArticleRectObserver extends EventEmitter<EventMap> {
 
   init(parent: HTMLElement) {
     this.parent = parent;
-    const scrollableParent = parent.parentElement;
     const parentBoundary = parent.getBoundingClientRect();
-    if (!scrollableParent) {
-      throw new Error('Scrollable parent not found');
-    }
     const articleWidth = parentBoundary.width;
     this.articleWidth = articleWidth;
     this.previousParentWidth = articleWidth;
-    this.setScroll(scrollableParent.scrollTop / articleWidth);
+    this.setScroll(parent.scrollTop / articleWidth);
     const onScroll = () => {
-      this.handleScroll(scrollableParent.scrollTop);
+      this.handleScroll(parent.scrollTop);
       if (!isNaN(this.animationFrame)) return;
       this.animationFrame = window.requestAnimationFrame(() => {
         this.animationFrame = NaN;
         this.emit('scroll', undefined);
       });
     };
-    scrollableParent.addEventListener('scroll', onScroll);
+    parent.addEventListener('scroll', onScroll);
     for (const sectionId of this.registry.keys()) {
       const el = this.registry.get(sectionId);
       if (!el) continue;
@@ -78,7 +74,7 @@ export class ArticleRectObserver extends EventEmitter<EventMap> {
       this.parent = undefined;
       this.isInitialized = false;
       this.previousParentWidth = null;
-      scrollableParent.removeEventListener('scroll', onScroll);
+      parent.removeEventListener('scroll', onScroll);
       if (!isNaN(this.animationFrame)) {
         window.cancelAnimationFrame(this.animationFrame);
         this.animationFrame = NaN;

@@ -157,6 +157,7 @@ export const Scene: FC<PropsWithChildren<Props>> = ({ children, id, styles: scen
           transform: sceneStyles && (sceneStyles.x !== 0 || sceneStyles.y !== 0) ? `translate(${sceneStyles.x}px, ${sceneStyles.y}px)` : 'none',
           transition: isSettling || isInstantTransitioning ? `${transitionStyle} 0.25s ease-out` : 'none',
           overflowY: isFixed ? 'hidden' : 'scroll',
+          overflowX: 'clip',
           opacity: sceneStyles?.opacity ?? 1,
           'WebkitOverflowScrolling': 'touch' // prevent glitch on Safari (fast scroll to top/bottom sides)
         }}
@@ -189,6 +190,6 @@ function canTransition(direction: Direction, el: HTMLElement) {
     case 'west':
       return el.scrollLeft === 0;
     case 'east':
-      return el.scrollLeft + el.clientWidth === el.scrollWidth;
+      return el.scrollLeft + el.clientWidth === window.innerWidth;
   }
 }

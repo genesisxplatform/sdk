@@ -1,13 +1,14 @@
 import { CSSProperties, FC, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { TFixedLayer } from '../../../sdk/types/project/FixedLayer';
 import { ArticleRectContext } from '../../provider/ArticleRectContext';
-import { useArticleRectObserver } from '../../utils/ArticleRectManager/useArticleRectObserver';
 import { WebglContextManagerContext } from '../../provider/WebGLContextManagerContext';
 import { WebGLContextManager } from '@cntrl-site/effects';
 import JSXStyle from 'styled-jsx/style';
 import { Item } from '../items/Item';
 import { FixedLayerTransitionsProvider } from '../../fixedLayers/FixedLayerTransitionsProvider';
 import { useCntrlContext } from '../../provider/useCntrlContext';
+import { ArticleRectObserver } from '../../utils/ArticleRectManager/ArticleRectObserver';
+import { useArticleRectObserver } from '../../utils/ArticleRectManager/useArticleRectObserver';
 
 interface Props {
   layer: TFixedLayer;
@@ -19,7 +20,7 @@ export const FixedLayer: FC<Props> = ({ layer, type }) => {
   const { exemplary } = useCntrlContext();
   const id = useId();
   const [deviation, setDeviation] = useState(1);
-  const articleRectObserver = useArticleRectObserver(fixedLayerRef);
+  const articleRectObserver = useArticleRectObserver();
   const webglContextManager = useMemo(() => new WebGLContextManager(), []);
 
   useEffect(() => {
@@ -32,7 +33,7 @@ export const FixedLayer: FC<Props> = ({ layer, type }) => {
     });
     observer.observe(fixedLayerRef);
     return () => observer.unobserve(fixedLayerRef);
-  }, [articleRectObserver, fixedLayerRef, exemplary]);
+  }, [fixedLayerRef, exemplary]);
 
   const layoutDeviationStyle = { '--layout-deviation': deviation } as CSSProperties;
   return (

@@ -182,7 +182,7 @@ function getDirectionFromDelta(deltaX: number, deltaY: number): Direction {
 function canTransition(direction: Direction, el: HTMLElement) {
   switch (direction) {
     case 'north':
-      return el.scrollTop === 0;
+      return el.scrollTop <= 0;
     case 'south': {
       const isAllowed = el.scrollTop + el.clientHeight + 1 >= el.scrollHeight;
       return isAllowed;

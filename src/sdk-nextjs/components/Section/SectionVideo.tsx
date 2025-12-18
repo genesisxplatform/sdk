@@ -19,7 +19,7 @@ interface Props {
 
 export const SectionVideo: FC<Props> = ({ container, sectionId, media }) => {
   const [video, setVideo] = useState<HTMLVideoElement | null>(null);
-  const sectionVideoCache = useContext(SectionVideoCacheContext);
+  const { videoCache } = useContext(SectionVideoCacheContext);
   const [videoWrapper, setVideoWrapper] = useState<HTMLDivElement | null>(null);
   const [isVideoWidthOverflow, setIsVideoWidthOverflow] = useState(false);
   const { url, size, position, offsetX, coverUrl, play } = media;
@@ -41,21 +41,38 @@ export const SectionVideo: FC<Props> = ({ container, sectionId, media }) => {
 
   useEffect(() => {
     if (!videoWrapper) return;
-    const video = sectionVideoCache.get(sectionId);
+    const video = videoCache.get(url);
     if (!video) return;
-    setVideo(video);
-    video.play().catch(() => {});
-    // controls / autoplay logic stays dynamic
     video.controls = play === "on-click";
     video.muted = play === "auto";
-
+    video.autoplay = play === "auto";
+    video.loop = true;
+    const style: CSSProperties = {
+      objectFit: isContainHeight ? 'cover' : (size ?? 'cover') as CSSProperties['objectFit'],
+      width: isContainHeight && !isVideoWidthOverflow ? 'auto' : '100%',
+      transform: isContainHeight ? 'translateX(-50%)' : 'none',
+      left: isContainHeight ? '50%' : (hasOffsetX ? `${offsetX * 100}vw` : '0'),
+      height: '100%',
+      position: 'relative'
+    }
+    Object.assign(video.style, style);
     if (!videoWrapper.contains(video)) {
       videoWrapper.appendChild(video);
+    }
+    setVideo(video);
+    video.addEventListener('play', () => {
+      setIsPlaying(true);
+    });
+    video.addEventListener('pause', () => {
+      setIsPlaying(false);
+    });
+    if (play === "auto") {
+      video.play().catch(() => {});
     }
     return () => {
       video.pause();
     };
-  }, [url, play, videoWrapper, sectionVideoCache, sectionId, video]);
+  }, [url, play, videoWrapper, videoCache, sectionId, video, isVideoWidthOverflow]);
 
   useEffect(() => {
     if (!video || play !== 'on-click') return;

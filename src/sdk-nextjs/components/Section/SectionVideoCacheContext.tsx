@@ -1,47 +1,48 @@
 import { createContext, CSSProperties, FC, PropsWithChildren, useEffect, useState } from 'react';
-import { Section, SectionVideo } from '../../../sdk/types/article/Section';
 
-export const SectionVideoCacheContext = createContext<Map<string, HTMLVideoElement>>(new Map());
+export const SectionVideoCacheContext = createContext<{ videoCache: Map<string, HTMLVideoElement>, imageCache: Map<string, HTMLImageElement> }>({ videoCache: new Map(), imageCache: new Map() });
 
 interface Props {
-  sections: Section[];
+  assets: string[];
 }
 
-export const SectionVideoCacheProvider: FC<PropsWithChildren<Props>> = ({ children, sections }) => {
-  const [sectionVideoCache, setSectionVideoCache] = useState<Map<string, HTMLVideoElement>>(new Map());
+export const SectionVideoCacheProvider: FC<PropsWithChildren<Props>> = ({ children, assets }) => {
+  const [videoCache, setVideoCache] = useState<Map<string, HTMLVideoElement>>(new Map());
+  const [imageCache, setImageCache] = useState<Map<string, HTMLImageElement>>(new Map());
 
   useEffect(() => {
-    sections.forEach((section) => {
-      if (section.media?.type === 'video' && section.media.play === 'auto') {
-        setSectionVideoCache(prev => prev.set(section.id, getSectionVideo(section.media as SectionVideo)));
+    assets.forEach(asset => {
+      if (isVideoAsset(asset)) {
+        const video = getSectionVideo(asset);
+        setVideoCache(prev => prev.set(asset, video));
+      } 
+      if (isImageAsset(asset)) {
+        const img = new Image();
+        img.src = asset;
+        setImageCache(prev => prev.set(asset, img));
       }
     });
-  }, [sections]);
-  return <SectionVideoCacheContext.Provider value={sectionVideoCache}>{children}</SectionVideoCacheContext.Provider>;
+  }, [assets]);
+  return <SectionVideoCacheContext.Provider value={{ videoCache, imageCache }}>{children}</SectionVideoCacheContext.Provider>;
 };
 
-function getSectionVideo(sectionVideo: SectionVideo) {
-  const { size, offsetX } = sectionVideo;
-  const isContainHeight = size === 'contain-height';
-  const hasOffsetX = offsetX !== null && size === 'contain';
+function getSectionVideo(url: string) {
   const video = document.createElement('video');
-  video.src = sectionVideo.url;
-  video.autoplay = false;
-  video.loop = true;
-  video.muted = true;
-  video.controls = false;
-  video.playsInline = true;
+  video.src = url;
   video.preload = 'auto';
-  const style: CSSProperties = {
-    objectFit: isContainHeight ? 'cover' : (size ?? 'cover') as CSSProperties['objectFit'],
-    width: isContainHeight ? 'auto' : '100%',
-    transform: isContainHeight ? 'translateX(-50%)' : 'none',
-    left: isContainHeight ? '50%' : (hasOffsetX ? `${offsetX * 100}vw` : '0'),
-    height: '100%',
-    position: 'relative'
-  }
-  Object.assign(video.style, style);
+  video.playsInline = true;
   video.load();
-  // video.play().catch(() => {});
   return video;
+}
+
+function isVideoAsset(url: string): boolean {
+  const videoExtensions = ['.mp4', '.mov', '.webm'];
+  const lowerUrl = url.toLowerCase();
+  return videoExtensions.some(ext => lowerUrl.endsWith(ext));
+}
+
+function isImageAsset(url: string): boolean {
+  const imageExtensions = ['.gif', '.png', '.jpg', '.jpeg', '.webp', '.avif', '.svg'];
+  const lowerUrl = url.toLowerCase();
+  return imageExtensions.some(ext => lowerUrl.endsWith(ext));
 }

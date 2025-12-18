@@ -1,4 +1,4 @@
-import { FC, useEffect, useId, useRef, useState } from 'react';
+import { FC, useContext, useEffect, useId, useRef, useState } from 'react';
 import JSXStyle from 'styled-jsx/style';
 import { ItemProps } from '../Item';
 import { LinkWrapper } from '../LinkWrapper';
@@ -12,6 +12,7 @@ import { useItemFXData } from '../../../common/useItemFXData';
 import { getFill } from '../../../utils/getFill';
 import { ImageItem as TImageItem } from '../../../../sdk/types/article/Item';
 import { useExemplary } from '../../../common/useExemplary';
+import { SectionVideoCacheContext } from '../../Section/SectionVideoCacheContext';
 
 export const ImageItem: FC<ItemProps<TImageItem>> = ({ item, sectionId, onResize, interactionCtrl, onVisibilityChange }) => {
   const id = useId();
@@ -22,6 +23,7 @@ export const ImageItem: FC<ItemProps<TImageItem>> = ({ item, sectionId, onResize
     strokeFill: itemStrokeFill,
     blur: itemBlur
   } = useFileItem(item, sectionId);
+  const { imageCache } = useContext(SectionVideoCacheContext);
   const itemAngle = useItemAngle(item, sectionId);
   const [wrapperRef, setWrapperRef] = useState<HTMLDivElement | null>(null);
   useRegisterResize(wrapperRef, onResize);
@@ -79,6 +81,18 @@ export const ImageItem: FC<ItemProps<TImageItem>> = ({ item, sectionId, onResize
   useEffect(() => {
     onVisibilityChange?.(isInteractive);
   }, [isInteractive, onVisibilityChange]);
+
+  useEffect(() => {
+    if (!wrapperRef) return;
+    const image = imageCache.get(url);
+    if (!image) return;
+    image.className = `image image-${item.id}`;
+    Object.assign(image.style, inlineStyles);
+    if (!wrapperRef.contains(image)) {
+      wrapperRef.appendChild(image);
+    }
+  }, [wrapperRef, imageCache, url, angle, blur, inlineStyles]);
+
   return (
     <LinkWrapper link={item.link}>
       <>
@@ -90,27 +104,19 @@ export const ImageItem: FC<ItemProps<TImageItem>> = ({ item, sectionId, onResize
             transform: `rotate(${angle}deg)`,
             ...(blur !== undefined ? { filter: `blur(${blur * 100}vw)` } : {}),
             willChange: blur !== 0 && blur !== undefined ? 'transform' : 'unset',
-            transition: wrapperStateParams?.transition ?? 'none'
+            transition: wrapperStateParams?.transition ?? 'none',
+
           }}
         >
-          {hasGLEffect && isFXAllowed
-            ? (
-                <canvas
-                  style={inlineStyles}
-                  ref={fxCanvas}
-                  className={`img-canvas image-${item.id}`}
-                  width={rectWidth}
-                  height={rectHeight}
-                />
-              )
-            : (
-                <img
-                  alt=""
-                  className={`image image-${item.id}`}
-                  style={inlineStyles}
-                  src={item.params.url}
-                />
-              )}
+          {hasGLEffect && isFXAllowed && (
+            <canvas
+              style={inlineStyles}
+              ref={fxCanvas}
+              className={`img-canvas image-${item.id}`}
+              width={rectWidth}
+              height={rectHeight}
+            />
+          )}
         </div>
         <JSXStyle id={id}>{`
         .image-wrapper-${item.id} {

@@ -38,7 +38,7 @@ export const Page: FC<PageProps> = ({ project, articlesData }) => {
           }
         }}
       >
-        <SectionVideoCacheProvider sections={Object.values(articlesData).flatMap(ad => ad.article.sections)}>
+        <SectionVideoCacheProvider assets={scenesAssets}>
           {project.foreground && !project.foreground.hidden && <FixedLayer layer={project.foreground} type="foreground" />}
           <Scenes articlesData={articlesData} />
           {project.background && !project.background.hidden && <FixedLayer layer={project.background} type="background" />}

@@ -117,6 +117,14 @@ export const ImageItem: FC<ItemProps<TImageItem>> = ({ item, sectionId, onResize
               height={rectHeight}
             />
           )}
+          {!(hasGLEffect && isFXAllowed) && !imageCache.has(url) && (
+            <img
+              alt=""
+              className={`image image-${item.id}`}
+              style={inlineStyles}
+              src={item.params.url}
+            />
+          )}
         </div>
         <JSXStyle id={id}>{`
         .image-wrapper-${item.id} {

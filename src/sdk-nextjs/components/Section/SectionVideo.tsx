@@ -1,4 +1,5 @@
-import { CSSProperties, FC, useEffect, useId, useRef, useState } from 'react';
+import { CSSProperties, FC, useContext, useEffect, useId, useRef, useState } from 'react';
+import { SectionVideoCacheContext } from './SectionVideoCacheContext';
 
 export type TSectionVideo = {
   url: string;
@@ -18,6 +19,7 @@ interface Props {
 
 export const SectionVideo: FC<Props> = ({ container, sectionId, media }) => {
   const [video, setVideo] = useState<HTMLVideoElement | null>(null);
+  const sectionVideoCache = useContext(SectionVideoCacheContext);
   const [videoWrapper, setVideoWrapper] = useState<HTMLDivElement | null>(null);
   const [isVideoWidthOverflow, setIsVideoWidthOverflow] = useState(false);
   const { url, size, position, offsetX, coverUrl, play } = media;
@@ -38,6 +40,24 @@ export const SectionVideo: FC<Props> = ({ container, sectionId, media }) => {
   };
 
   useEffect(() => {
+    if (!videoWrapper) return;
+    const video = sectionVideoCache.get(sectionId);
+    if (!video) return;
+    setVideo(video);
+    video.play().catch(() => {});
+    // controls / autoplay logic stays dynamic
+    video.controls = play === "on-click";
+    video.muted = play === "auto";
+
+    if (!videoWrapper.contains(video)) {
+      videoWrapper.appendChild(video);
+    }
+    return () => {
+      video.pause();
+    };
+  }, [url, play, videoWrapper, sectionVideoCache, sectionId, video]);
+
+  useEffect(() => {
     if (!video || play !== 'on-click') return;
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -56,6 +76,7 @@ export const SectionVideo: FC<Props> = ({ container, sectionId, media }) => {
   useEffect(() => {
     if (!video || !videoWrapper) return;
     video.addEventListener('loadedmetadata', () => {
+      console.log('loadedmetadata', video.videoHeight, video.videoWidth);
       const h = video.videoHeight;
       const w = video.videoWidth;
       const width = (videoWrapper.clientHeight / h) * w;
@@ -80,32 +101,11 @@ export const SectionVideo: FC<Props> = ({ container, sectionId, media }) => {
           height: position === 'fixed' ? '100vh' : '100%',
           top: position === 'fixed' ? '100vh' : '0',
           overflow: 'hidden',
+          opacity: !isClickedOnCover && play === 'on-click' && coverUrl ? 0 : 1,
           width: '100%'
         }}
       >
-        <video
-          ref={setVideo}
-          autoPlay={play === 'auto'}
-          loop
-          style={{
-            opacity: !isClickedOnCover && play === 'on-click' && coverUrl ? 0 : 1,
-            objectFit: isContainHeight ? 'cover' : (size ?? 'cover') as CSSProperties['objectFit'],
-            width: isContainHeight && !isVideoWidthOverflow ? 'auto' : '100%',
-            transform: isContainHeight ? 'translateX(-50%)' : 'none',
-            left: isContainHeight ? '50%' : (hasOffsetX ? `${offsetX * 100}vw` : '0'),
-            height: '100%',
-            position: 'relative'
-          }}
-          controls={play === 'on-click'}
-          muted={play === 'auto'}
-          playsInline
-          preload="auto"
-          className={`video-background-${sectionId}`}
-          onPlay={() => setIsPlaying(true)}
-          onPause={() => setIsPlaying(false)}
-        >
-          <source src={`${url}`} />
-        </video>
+
         {play === 'on-click' && !isClickedOnCover && (
           <div
             className={`video-background-${sectionId}-cover-container`}

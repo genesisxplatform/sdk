@@ -36,6 +36,7 @@ export class ItemInteractionController implements ItemInteractionCtrl {
   }
 
   sendTrigger(type: 'click' | 'hover-in' | 'hover-out') {
+    if (!this.registry.notifyItemTrigger) return;
     this.registry.notifyItemTrigger(this.itemId, type);
   }
 

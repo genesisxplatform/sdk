@@ -117,10 +117,6 @@ export class FixedLayerTransitionsRegistry implements InteractionsRegistryPort {
     return stages;
   }
 
-  notifyItemTrigger(itemId: string, triggerType: TriggerType): void {
-    throw new Error('Not implemented');
-  }
-
   notifyOnActiveSceneChange(sceneId: SceneId) {
     this.itemsStages = this.itemsStages.map((stage) => {
       return {

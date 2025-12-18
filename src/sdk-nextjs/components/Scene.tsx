@@ -153,6 +153,7 @@ export const Scene: FC<PropsWithChildren<Props>> = ({ children, id, styles: scen
           ...layoutDeviationStyle,
           width: '100vw',
           height: '100%',
+          zIndex: 1,
           position: isFixed ? 'fixed' : 'absolute',
           transform: sceneStyles && (sceneStyles.x !== 0 || sceneStyles.y !== 0) ? `translate(${sceneStyles.x}px, ${sceneStyles.y}px)` : 'none',
           transition: isSettling || isInstantTransitioning ? `${transitionStyle} 0.25s ease-out` : 'none',
@@ -182,7 +183,7 @@ function getDirectionFromDelta(deltaX: number, deltaY: number): Direction {
 function canTransition(direction: Direction, el: HTMLElement) {
   switch (direction) {
     case 'north':
-      return el.scrollTop === 0;
+      return el.scrollTop <= 0;
     case 'south': {
       const isAllowed = el.scrollTop + el.clientHeight + 1 >= el.scrollHeight;
       return isAllowed;

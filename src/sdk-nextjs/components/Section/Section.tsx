@@ -72,6 +72,7 @@ export const Section: FC<Props> = ({ section, data, children }) => {
           position: relative;
           display: ${hidden ? 'none' : 'block'};
           background-color: ${CntrlColor.parse(color ?? DEFAULT_COLOR).fmt('rgba')};
+          overflow: clip;
         }
         .section-background-overlay-${section.id} {
           height: ${getSectionHeight(height)};

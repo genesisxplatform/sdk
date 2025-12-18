@@ -17,7 +17,7 @@ export interface InteractionsRegistryPort {
   register(itemId: string, ctrl: ItemInteractionCtrl): void;
   getStatePropsForItem(itemId: string): StateProps<unknown>;
   getItemAvailableTriggers(itemId: string): Set<InteractionItemTrigger['type']>;
-  notifyItemTrigger(itemId: string, type: TriggerType): void;
+  notifyItemTrigger?: (itemId: string, type: TriggerType) => void;
   notifyTransitionEnd(itemId: string): void;
 }
 

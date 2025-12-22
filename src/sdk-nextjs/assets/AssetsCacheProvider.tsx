@@ -1,19 +1,19 @@
 import { createContext, CSSProperties, FC, PropsWithChildren, useEffect, useState } from 'react';
 
-export const SectionVideoCacheContext = createContext<{ videoCache: Map<string, HTMLVideoElement>, imageCache: Map<string, HTMLImageElement> }>({ videoCache: new Map(), imageCache: new Map() });
+export const AssetsCacheContext = createContext<{ videoCache: Map<string, HTMLVideoElement>, imageCache: Map<string, HTMLImageElement> }>({ videoCache: new Map(), imageCache: new Map() });
 
 interface Props {
   assets: string[];
 }
 
-export const SectionVideoCacheProvider: FC<PropsWithChildren<Props>> = ({ children, assets }) => {
+export const AssetsCacheProvider: FC<PropsWithChildren<Props>> = ({ children, assets }) => {
   const [videoCache, setVideoCache] = useState<Map<string, HTMLVideoElement>>(new Map());
   const [imageCache, setImageCache] = useState<Map<string, HTMLImageElement>>(new Map());
 
   useEffect(() => {
     assets.forEach(asset => {
       if (isVideoAsset(asset)) {
-        const video = getSectionVideo(asset);
+        const video = getVideo(asset);
         setVideoCache(prev => prev.set(asset, video));
       } 
       if (isImageAsset(asset)) {
@@ -23,10 +23,10 @@ export const SectionVideoCacheProvider: FC<PropsWithChildren<Props>> = ({ childr
       }
     });
   }, [assets]);
-  return <SectionVideoCacheContext.Provider value={{ videoCache, imageCache }}>{children}</SectionVideoCacheContext.Provider>;
+  return <AssetsCacheContext.Provider value={{ videoCache, imageCache }}>{children}</AssetsCacheContext.Provider>;
 };
 
-function getSectionVideo(url: string) {
+function getVideo(url: string) {
   const video = document.createElement('video');
   video.src = url;
   video.preload = 'auto';

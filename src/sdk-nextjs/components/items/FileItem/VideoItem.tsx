@@ -13,9 +13,10 @@ import { useItemFXData } from '../../../common/useItemFXData';
 import { getFill } from '../../../utils/getFill';
 import { FillLayer } from '../../../../sdk/types/article/Item';
 import { VideoItem as TVideoItem } from '../../../../sdk/types/article/Item';
-import { useCntrlContext } from '../../../provider/useCntrlContext';
 import { useExemplary } from '../../../common/useExemplary';
-import { SectionVideoCacheContext } from '../../Section/SectionVideoCacheContext';
+import { AssetsCacheContext } from '../../../assets/AssetsCacheProvider';
+import { useCacheVideo } from '../../../assets/useCacheVideo';
+import { useCacheImage } from '../../../assets/useCacheImage';
 
 export const VideoItem: FC<ItemProps<TVideoItem>> = ({ item, sectionId, onResize, interactionCtrl, onVisibilityChange }) => {
   const id = useId();
@@ -26,7 +27,7 @@ export const VideoItem: FC<ItemProps<TVideoItem>> = ({ item, sectionId, onResize
     opacity: itemOpacity,
     blur: itemBlur
   } = useFileItem(item, sectionId);
-  const { videoCache } = useContext(SectionVideoCacheContext);
+  const { videoCache, imageCache } = useContext(AssetsCacheContext);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const isScrollPausedRef = useRef(false);
   const [userPaused, setUserPaused] = useState(false);
@@ -76,53 +77,87 @@ export const VideoItem: FC<ItemProps<TVideoItem>> = ({ item, sectionId, onResize
   );
   useRegisterResize(videoWrapper, onResize);
   const inlineStyles = {
+      transform: `translateZ(0)`,
       borderRadius: `${radius * 100}vw`,
       ...(strokeWidth !== undefined ? {
         borderWidth: `${strokeWidth * 100}vw`,
         borderColor: stroke,
         borderRadius: radius !== undefined ? `${radius * 100}vw` : 'inherit',
-        borderStyle: 'solid'
+        borderStyle: 'solid',
       } : {}),
     transition: videoStateParams?.transition ?? 'none'
   };
   const isInteractive = opacity !== 0;
-  useEffect(() => {
-    onVisibilityChange?.(isInteractive);
-  }, [isInteractive, onVisibilityChange]);
 
-  useEffect(() => {
-    if (!videoWrapper || hasScrollPlayback || hasGLEffect) return;
-    const { play } = params;
-    const video = videoCache.get(url);
-    if (!video) return;
-    video.controls = play === "on-click";
-    video.muted = play === "auto";
-    video.autoplay = play === "auto";
-    video.loop = true;
-    video.poster = item.params.coverUrl ?? '';
-    video.style.transform = `translateZ(0)`;
-    video.className = `video video-${item.id}`;
-    if (!videoWrapper.contains(video)) {
-      videoWrapper.appendChild(video);
-    }
-    setVideoRef(video);
-    video.addEventListener('play', () => {
+  const renderVideo = !hasScrollPlayback && !hasGLEffect;
+  useCacheVideo(
+    url,
+    videoWrapper,
+    renderVideo,
+    params,
+    inlineStyles,
+    videoRef,
+    setVideoRef,
+    `video video-${item.id}`,
+    () => {
       setIsVideoPlaying(true);
       setUserPaused(false);
-    });
-    video.addEventListener('pause', () => {
+    },
+    () => {
       if (!isScrollPausedRef.current) {
         setUserPaused(true);
       }
       setIsVideoPlaying(false);
-    });
-    if (play === "auto") {
-      video.play().catch(() => {});
+    },
+    () => {
+      if (!videoRef || params.play !== 'on-hover') return;
+      videoRef.play();
+    },
+    () => {
+      if (!videoRef || params.play !== 'on-hover') return;
+      videoRef.pause();
     }
-    return () => {
-      video.pause();
-    };
-  }, [params, videoWrapper, videoCache]);
+  );
+  const renderCover = renderVideo && (params.play === 'on-click' || params.play === 'on-hover' && item.params.coverUrl && !isVideoInteracted);
+  useCacheImage(
+    item.params.coverUrl ?? '',
+    !!renderCover,
+    {},
+    videoWrapper,
+    `video-cover-${item.id}`,
+    () => {
+      if (!videoRef || params.play !== 'on-hover') return;
+      setIsVideoInteracted(true);
+      videoRef.play();
+    },
+    () => {
+      if (!videoRef) return;
+      setIsVideoInteracted(true);
+      videoRef.play();
+    }
+  );
+
+  useEffect(() => {
+    if (!params || !videoRef || params.play !== 'on-click' || !videoWrapper) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (userPaused || !isVideoInteracted) return;
+        if (entry.isIntersecting) {
+          isScrollPausedRef.current = false;
+          videoRef.play();
+        } else {
+          isScrollPausedRef.current = true;
+          videoRef.pause();
+        }
+      }
+    );
+    observer.observe(videoWrapper);
+    return () => observer.disconnect();
+  }, [params, videoRef, videoWrapper, userPaused, isVideoInteracted]);
+
+  useEffect(() => {
+    onVisibilityChange?.(isInteractive);
+  }, [isInteractive, onVisibilityChange]);
 
   return (
     <LinkWrapper link={item.link}>
@@ -157,7 +192,44 @@ export const VideoItem: FC<ItemProps<TVideoItem>> = ({ item, sectionId, onResize
         )}
         {!hasScrollPlayback && !hasGLEffect && (
           <>
-            {(params.play === 'on-click' || params.play === 'on-hover') && item.params.coverUrl && !isVideoInteracted && (
+            {renderVideo && !videoCache.has(url) && (
+              <video
+                poster={item.params.coverUrl ?? ''}
+                ref={setVideoRef}
+                autoPlay={params.play === 'auto'}
+                preload="auto"
+                onClick={() => {
+                  setIsVideoInteracted(true);
+                }}
+                muted={params.muted}
+                onPlay={() => {
+                  setIsVideoPlaying(true);
+                  setUserPaused(false);
+                }}
+                onPause={() => {
+                  if (!isScrollPausedRef.current) {
+                    setUserPaused(true);
+                  }
+                  setIsVideoPlaying(false);
+                }}
+                onMouseEnter={() => {
+                  if (!videoRef || params.play !== 'on-hover') return;
+                  videoRef.play();
+                }}
+                onMouseLeave={() => {
+                  if (!videoRef || params.play !== 'on-hover') return;
+                  videoRef.pause();
+                }}
+                loop
+                controls={params.controls}
+                playsInline
+                className={`video video-${item.id}`}
+                style={inlineStyles}
+              >
+                <source src={item.params.url} />
+              </video>
+            )}
+            {renderCover && !imageCache.has(item.params.coverUrl ?? '') && (
               <img
                 onMouseEnter={() => {
                   if (!videoRef || params.play !== 'on-hover') return;

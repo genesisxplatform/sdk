@@ -12,7 +12,8 @@ import { useItemFXData } from '../../../common/useItemFXData';
 import { getFill } from '../../../utils/getFill';
 import { ImageItem as TImageItem } from '../../../../sdk/types/article/Item';
 import { useExemplary } from '../../../common/useExemplary';
-import { SectionVideoCacheContext } from '../../Section/SectionVideoCacheContext';
+import { AssetsCacheContext } from '../../../assets/AssetsCacheProvider';
+import { useCacheImage } from '../../../assets/useCacheImage';
 
 export const ImageItem: FC<ItemProps<TImageItem>> = ({ item, sectionId, onResize, interactionCtrl, onVisibilityChange }) => {
   const id = useId();
@@ -23,7 +24,7 @@ export const ImageItem: FC<ItemProps<TImageItem>> = ({ item, sectionId, onResize
     strokeFill: itemStrokeFill,
     blur: itemBlur
   } = useFileItem(item, sectionId);
-  const { imageCache } = useContext(SectionVideoCacheContext);
+  const { imageCache } = useContext(AssetsCacheContext);
   const itemAngle = useItemAngle(item, sectionId);
   const [wrapperRef, setWrapperRef] = useState<HTMLDivElement | null>(null);
   useRegisterResize(wrapperRef, onResize);
@@ -78,20 +79,11 @@ export const ImageItem: FC<ItemProps<TImageItem>> = ({ item, sectionId, onResize
       transition: imgStateParams?.transition ?? 'none'
     };
   const isInteractive = opacity !== 0;
+  const renderImage = !hasGLEffect && !isFXAllowed;
+  useCacheImage(url, renderImage, inlineStyles, wrapperRef, `image image-${item.id}`);
   useEffect(() => {
     onVisibilityChange?.(isInteractive);
   }, [isInteractive, onVisibilityChange]);
-
-  useEffect(() => {
-    if (!wrapperRef) return;
-    const image = imageCache.get(url);
-    if (!image) return;
-    image.className = `image image-${item.id}`;
-    Object.assign(image.style, inlineStyles);
-    if (!wrapperRef.contains(image)) {
-      wrapperRef.appendChild(image);
-    }
-  }, [wrapperRef, imageCache, url, angle, blur, inlineStyles]);
 
   return (
     <LinkWrapper link={item.link}>
@@ -117,7 +109,7 @@ export const ImageItem: FC<ItemProps<TImageItem>> = ({ item, sectionId, onResize
               height={rectHeight}
             />
           )}
-          {!(hasGLEffect && isFXAllowed) && !imageCache.has(url) && (
+          {renderImage && !imageCache.has(url) && (
             <img
               alt=""
               className={`image image-${item.id}`}

@@ -1,11 +1,10 @@
 export const ChevronIcon = ({ className }: { className?: string }) => {
   return (
     <svg width="44px" height="44px" viewBox="0 0 44 44" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink">
-      <title>arrow</title>
       <defs>
           <circle id="path-1" cx="21.5" cy="21.5" r="21"></circle>
       </defs>
-      <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+      <g id="Page-1" stroke="none" strokeWidth="1" fill="none" fillRule="evenodd">
           <g id="arrow">
               <g id="Oval" opacity="0.2">
                   <use fill="#000000" xlinkHref="#path-1"></use>

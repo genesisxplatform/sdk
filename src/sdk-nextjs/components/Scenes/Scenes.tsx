@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { FC, useEffect } from 'react';
 import { Article as TArticle } from '../../../sdk/types/article/Article';
 import { KeyframeAny } from '../../../sdk/types/keyframe/Keyframe';
 import { TransitionMachineContext } from '../../provider/TransitionMachineContext';

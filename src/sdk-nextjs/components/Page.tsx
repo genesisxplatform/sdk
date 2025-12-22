@@ -8,6 +8,8 @@ import { TransitionMachineContext } from '../provider/TransitionMachineContext';
 import { Scenes } from './Scenes/Scenes';
 import { FixedLayer } from './fixedLayers/FixedLayer';
 import { usePreloadAssets } from '../utils/usePrelaodAssets';
+import { PreviewWrapper } from './Preview/PreviewWrapper';
+import { PreviewListener } from './Preview/PreviewListener';
 import { AssetsCacheProvider } from '../assets/AssetsCacheProvider';
 
 export interface PageProps {
@@ -29,21 +31,24 @@ export const Page: FC<PageProps> = ({ project, articlesData }) => {
     <>
       <CNTRLHead project={project} />
       {afterBodyOpen}
-      <TransitionMachineContext.Provider
-        options={{
-          input: {
-            startScene,
-            relations,
-            scenes,
-          }
-        }}
-      >
-        <AssetsCacheProvider assets={scenesAssets}>
-          {project.foreground && !project.foreground.hidden && <FixedLayer layer={project.foreground} type="foreground" />}
-          <Scenes articlesData={articlesData} />
-          {project.background && !project.background.hidden && <FixedLayer layer={project.background} type="background" />}
-        </AssetsCacheProvider>
-      </TransitionMachineContext.Provider>
+        <PreviewWrapper relations={relations} startScene={startScene}>
+          <TransitionMachineContext.Provider
+            options={{
+              input: {
+                startScene,
+                relations,
+                scenes,
+              }
+            }}
+          >
+            <PreviewListener />
+            <AssetsCacheProvider assets={scenesAssets}>
+              {project.foreground && !project.foreground.hidden && <FixedLayer layer={project.foreground} type="foreground" />}
+              <Scenes articlesData={articlesData} />
+              {project.background && !project.background.hidden && <FixedLayer layer={project.background} type="background" />}
+            </AssetsCacheProvider>
+          </TransitionMachineContext.Provider>
+        </PreviewWrapper>
       {beforeBodyClose}
     </>
   );

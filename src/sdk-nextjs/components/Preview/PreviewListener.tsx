@@ -8,6 +8,7 @@ export const PreviewListener = () => {
     isActive: state.matches('active'),
    }));
   const iframePreviewWindow = useIframePreviewWindow();
+
   useEffect(() => {
     if (!iframePreviewWindow) return;
     const handleMessage = (e: MessageEvent) => {
@@ -43,5 +44,6 @@ export const PreviewListener = () => {
       );
     }
   }, [isActive, actorRef, iframePreviewWindow]);
+
   return null;
 };

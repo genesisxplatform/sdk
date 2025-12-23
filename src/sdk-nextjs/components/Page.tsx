@@ -7,9 +7,9 @@ import { KeyframeAny } from '../../sdk/types/keyframe/Keyframe';
 import { TransitionMachineContext } from '../provider/TransitionMachineContext';
 import { Scenes } from './Scenes/Scenes';
 import { FixedLayer } from './fixedLayers/FixedLayer';
-import { usePreloadAssets } from '../utils/usePrelaodAssets';
 import { PreviewWrapper } from './Preview/PreviewWrapper';
 import { PreviewListener } from './Preview/PreviewListener';
+import { AssetsCacheProvider } from '../assets/AssetsCacheProvider';
 
 export interface PageProps {
   project: Project;
@@ -25,7 +25,6 @@ export const Page: FC<PageProps> = ({ project, articlesData }) => {
   const startScene = project.pages.find(page => page.isStartScene)?.articleId ?? Object.keys(articlesData)[0];
   const scenes = Object.values(articlesData).map(({ article }) => ({ id: article.id }));
   const { relations, scenesAssets } = project;
-  usePreloadAssets(scenesAssets);
   return (
     <>
       <CNTRLHead project={project} />
@@ -41,9 +40,11 @@ export const Page: FC<PageProps> = ({ project, articlesData }) => {
             }}
           >
             <PreviewListener />
-            {project.foreground && !project.foreground.hidden && <FixedLayer layer={project.foreground} type="foreground" />}
-            <Scenes articlesData={articlesData} />
-            {project.background && !project.background.hidden && <FixedLayer layer={project.background} type="background" />}
+            <AssetsCacheProvider assets={scenesAssets}>
+              {project.foreground && !project.foreground.hidden && <FixedLayer layer={project.foreground} type="foreground" />}
+              <Scenes articlesData={articlesData} />
+              {project.background && !project.background.hidden && <FixedLayer layer={project.background} type="background" />}
+            </AssetsCacheProvider>
           </TransitionMachineContext.Provider>
         </PreviewWrapper>
       {beforeBodyClose}

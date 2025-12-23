@@ -1,4 +1,4 @@
-import { FC, useEffect, useId, useRef, useState } from 'react';
+import { FC, useContext, useEffect, useId, useRef, useState } from 'react';
 import JSXStyle from 'styled-jsx/style';
 import { ItemProps } from '../Item';
 import { LinkWrapper } from '../LinkWrapper';
@@ -12,6 +12,9 @@ import { useItemFXData } from '../../../common/useItemFXData';
 import { getFill } from '../../../utils/getFill';
 import { ImageItem as TImageItem } from '../../../../sdk/types/article/Item';
 import { useExemplary } from '../../../common/useExemplary';
+import { AssetsCacheContext } from '../../../assets/AssetsCacheProvider';
+import { useCacheImage } from '../../../assets/useCacheImage';
+import { getCacheAssetKey } from '../../../assets/getCacheAssetKey';
 
 export const ImageItem: FC<ItemProps<TImageItem>> = ({ item, sectionId, onResize, interactionCtrl, onVisibilityChange }) => {
   const id = useId();
@@ -22,10 +25,12 @@ export const ImageItem: FC<ItemProps<TImageItem>> = ({ item, sectionId, onResize
     strokeFill: itemStrokeFill,
     blur: itemBlur
   } = useFileItem(item, sectionId);
+  const { imageCache } = useContext(AssetsCacheContext);
   const itemAngle = useItemAngle(item, sectionId);
   const [wrapperRef, setWrapperRef] = useState<HTMLDivElement | null>(null);
   useRegisterResize(wrapperRef, onResize);
   const { url, hasGLEffect } = item.params;
+  const cacheKey = getCacheAssetKey(url, item.id);
   const fxCanvas = useRef<HTMLCanvasElement | null>(null);
   const isInitialRef = useRef(true);
 
@@ -76,9 +81,12 @@ export const ImageItem: FC<ItemProps<TImageItem>> = ({ item, sectionId, onResize
       transition: imgStateParams?.transition ?? 'none'
     };
   const isInteractive = opacity !== 0;
+  const renderImage = !(hasGLEffect && isFXAllowed);
+  useCacheImage(cacheKey, renderImage, inlineStyles, wrapperRef, `image image-${item.id}`);
   useEffect(() => {
     onVisibilityChange?.(isInteractive);
   }, [isInteractive, onVisibilityChange]);
+
   return (
     <LinkWrapper link={item.link}>
       <>
@@ -90,27 +98,27 @@ export const ImageItem: FC<ItemProps<TImageItem>> = ({ item, sectionId, onResize
             transform: `rotate(${angle}deg)`,
             ...(blur !== undefined ? { filter: `blur(${blur * 100}vw)` } : {}),
             willChange: blur !== 0 && blur !== undefined ? 'transform' : 'unset',
-            transition: wrapperStateParams?.transition ?? 'none'
+            transition: wrapperStateParams?.transition ?? 'none',
+
           }}
         >
-          {hasGLEffect && isFXAllowed
-            ? (
-                <canvas
-                  style={inlineStyles}
-                  ref={fxCanvas}
-                  className={`img-canvas image-${item.id}`}
-                  width={rectWidth}
-                  height={rectHeight}
-                />
-              )
-            : (
-                <img
-                  alt=""
-                  className={`image image-${item.id}`}
-                  style={inlineStyles}
-                  src={item.params.url}
-                />
-              )}
+          {hasGLEffect && isFXAllowed && (
+            <canvas
+              style={inlineStyles}
+              ref={fxCanvas}
+              className={`img-canvas image-${item.id}`}
+              width={rectWidth}
+              height={rectHeight}
+            />
+          )}
+          {renderImage && !imageCache.has(cacheKey) && (
+            <img
+              alt=""
+              className={`image image-${item.id}`}
+              style={inlineStyles}
+              src={item.params.url}
+            />
+          )}
         </div>
         <JSXStyle id={id}>{`
         .image-wrapper-${item.id} {

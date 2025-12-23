@@ -12,12 +12,12 @@ function isImageAsset(url: string): boolean {
   return imageExtensions.some(ext => lowerUrl.endsWith(ext));
 }
 
-export function usePreloadAssets(assets: string[]) {
+export function usePreloadAssets(assets: { url: string, id: string }[]) {
   useEffect(() => {
-    assets.forEach(asset => {
-      if (isVideoAsset(asset)) {
+    assets.forEach(({ url, id }) => {
+      if (isVideoAsset(url)) {
         const video = document.createElement('video');
-        video.src = asset;
+        video.src = url;
         video.preload = 'auto';
         video.style.display = 'none';
         document.body.appendChild(video);
@@ -29,9 +29,9 @@ export function usePreloadAssets(assets: string[]) {
           }, 1000);
         });
       } 
-      if (isImageAsset(asset)) {
+      if (isImageAsset(url)) {
         const img = new Image();
-        img.src = asset;
+        img.src = url;
       }
     });
   }, [assets]);

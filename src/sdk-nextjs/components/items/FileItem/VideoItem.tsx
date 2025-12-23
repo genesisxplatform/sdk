@@ -1,4 +1,4 @@
-import { FC, useContext, useEffect, useId, useMemo, useRef, useState } from 'react';
+import { FC, useCallback, useContext, useEffect, useId, useMemo, useRef, useState } from 'react';
 import JSXStyle from 'styled-jsx/style';
 import { ItemProps } from '../Item';
 import { LinkWrapper } from '../LinkWrapper';
@@ -11,12 +11,12 @@ import { useVideoFx } from '../../../utils/effects/useVideoFx';
 import { useElementRect } from '../../../utils/useElementRect';
 import { useItemFXData } from '../../../common/useItemFXData';
 import { getFill } from '../../../utils/getFill';
-import { FillLayer } from '../../../../sdk/types/article/Item';
 import { VideoItem as TVideoItem } from '../../../../sdk/types/article/Item';
 import { useExemplary } from '../../../common/useExemplary';
 import { AssetsCacheContext } from '../../../assets/AssetsCacheProvider';
 import { useCacheVideo } from '../../../assets/useCacheVideo';
 import { useCacheImage } from '../../../assets/useCacheImage';
+import { getCacheAssetKey } from '../../../assets/getCacheAssetKey';
 
 export const VideoItem: FC<ItemProps<TVideoItem>> = ({ item, sectionId, onResize, interactionCtrl, onVisibilityChange }) => {
   const id = useId();
@@ -29,12 +29,14 @@ export const VideoItem: FC<ItemProps<TVideoItem>> = ({ item, sectionId, onResize
   } = useFileItem(item, sectionId);
   const { videoCache, imageCache } = useContext(AssetsCacheContext);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+  const videoCacheKey = getCacheAssetKey(item.params.url, item.id);
+  const coverCacheKey = item.params.coverUrl ? getCacheAssetKey(item.params.coverUrl, item.id) : null;
   const isScrollPausedRef = useRef(false);
   const [userPaused, setUserPaused] = useState(false);
   const [isVideoInteracted, setIsVideoInteracted] = useState(false);
   const itemAngle = useItemAngle(item, sectionId);
   const [videoWrapper, setVideoWrapper] = useState<HTMLDivElement | null>(null);
-  const [videoRef, setVideoRef] = useState<HTMLVideoElement | null>(null);
+  const [video, setVideo] = useState<HTMLVideoElement | null>(null);
   const fxCanvas = useRef<HTMLCanvasElement | null>(null);
   const { url, hasGLEffect } = item.params;
   const isInitialRef = useRef(true);
@@ -56,7 +58,6 @@ export const VideoItem: FC<ItemProps<TVideoItem>> = ({ item, sectionId, onResize
   const blur = getStyleFromItemStateAndParams(wrapperStateParams?.styles?.blur, itemBlur);
   const strokeWidth = getStyleFromItemStateAndParams(wrapperStateParams?.styles?.strokeWidth, itemStrokeWidth);
   const radius = getStyleFromItemStateAndParams(wrapperStateParams?.styles?.radius, itemRadius);
-
   const strokeFill = getStyleFromItemStateAndParams(videoStateParams?.styles?.strokeFill?.[0], itemStrokeFill?.[0]) ?? itemStrokeFill?.[0];
   const stroke = strokeFill
     ? getFill(strokeFill) ?? 'transparent'
@@ -88,72 +89,90 @@ export const VideoItem: FC<ItemProps<TVideoItem>> = ({ item, sectionId, onResize
     transition: videoStateParams?.transition ?? 'none'
   };
   const isInteractive = opacity !== 0;
-
-  const renderVideo = !hasScrollPlayback && !hasGLEffect;
+  const isVideoVisible = !hasScrollPlayback && !hasGLEffect;
   useCacheVideo(
-    url,
+    videoCacheKey,
     videoWrapper,
-    renderVideo,
+    isVideoVisible,
     params,
     inlineStyles,
-    videoRef,
-    setVideoRef,
-    `video video-${item.id}`,
-    () => {
-      setIsVideoPlaying(true);
-      setUserPaused(false);
-    },
-    () => {
-      if (!isScrollPausedRef.current) {
-        setUserPaused(true);
-      }
-      setIsVideoPlaying(false);
-    },
-    () => {
-      if (!videoRef || params.play !== 'on-hover') return;
-      videoRef.play();
-    },
-    () => {
-      if (!videoRef || params.play !== 'on-hover') return;
-      videoRef.pause();
-    }
+    video,
+    setVideo,
+    `video video-${item.id}`
   );
-  const renderCover = renderVideo && (params.play === 'on-click' || params.play === 'on-hover' && item.params.coverUrl && !isVideoInteracted);
+
+  const onCoverMouseEnter= useCallback(() => {
+    if (!video || params.play !== 'on-hover') return;
+    setIsVideoInteracted(true);
+    video.play();
+  }, [video, params]);
+
+  const onCoverClick = useCallback(() => {
+    if (!video) return;
+    setIsVideoInteracted(true);
+    video.play();
+  }, [video, params]);
+
+  const renderCover = isVideoVisible && ((params.play === 'on-click' || params.play === 'on-hover') && item.params.coverUrl && !isVideoInteracted);
   useCacheImage(
-    item.params.coverUrl ?? '',
+    coverCacheKey,
     !!renderCover,
     {},
     videoWrapper,
     `video-cover-${item.id}`,
-    () => {
-      if (!videoRef || params.play !== 'on-hover') return;
-      setIsVideoInteracted(true);
-      videoRef.play();
-    },
-    () => {
-      if (!videoRef) return;
-      setIsVideoInteracted(true);
-      videoRef.play();
-    }
+    onCoverMouseEnter,
+    onCoverClick
   );
 
   useEffect(() => {
-    if (!params || !videoRef || params.play !== 'on-click' || !videoWrapper) return;
+    if (!video || !videoCache.has(url)) return;
+    const onPlay = () => {
+      setIsVideoPlaying(true);
+      setUserPaused(false);
+    };
+    const onPause = () => {
+      if (!isScrollPausedRef.current) {
+        setUserPaused(true);
+      }
+      setIsVideoPlaying(false);
+    };
+    const onMouseEnter = () => {
+      if (!video || params.play !== 'on-hover') return;
+      video.play();
+    };
+    const onMouseLeave = () => {
+      if (!video || params.play !== 'on-hover') return;
+      video.pause();
+    };
+    video.addEventListener('play', onPlay);
+    video.addEventListener('pause', onPause);
+    video.addEventListener('mouseenter', onMouseEnter);
+    video.addEventListener('mouseleave', onMouseLeave);
+    return () => {
+      video.removeEventListener('play', onPlay);
+      video.removeEventListener('pause', onPause);
+      video.removeEventListener('mouseenter', onMouseEnter);
+      video.removeEventListener('mouseleave', onMouseLeave);
+    };
+  }, [video, videoCache, params]);
+
+  useEffect(() => {
+    if (!params || !video || params.play !== 'on-click' || !videoWrapper) return;
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (userPaused || !isVideoInteracted) return;
         if (entry.isIntersecting) {
           isScrollPausedRef.current = false;
-          videoRef.play();
+          video.play();
         } else {
           isScrollPausedRef.current = true;
-          videoRef.pause();
+          video.pause();
         }
       }
     );
     observer.observe(videoWrapper);
     return () => observer.disconnect();
-  }, [params, videoRef, videoWrapper, userPaused, isVideoInteracted]);
+  }, [params, video, videoWrapper, userPaused, isVideoInteracted]);
 
   useEffect(() => {
     onVisibilityChange?.(isInteractive);
@@ -192,10 +211,10 @@ export const VideoItem: FC<ItemProps<TVideoItem>> = ({ item, sectionId, onResize
         )}
         {!hasScrollPlayback && !hasGLEffect && (
           <>
-            {renderVideo && !videoCache.has(url) && (
+            {isVideoVisible && !videoCache.has(videoCacheKey) && (
               <video
                 poster={item.params.coverUrl ?? ''}
-                ref={setVideoRef}
+                ref={setVideo}
                 autoPlay={params.play === 'auto'}
                 preload="auto"
                 onClick={() => {
@@ -213,12 +232,12 @@ export const VideoItem: FC<ItemProps<TVideoItem>> = ({ item, sectionId, onResize
                   setIsVideoPlaying(false);
                 }}
                 onMouseEnter={() => {
-                  if (!videoRef || params.play !== 'on-hover') return;
-                  videoRef.play();
+                  if (!video || params.play !== 'on-hover') return;
+                  video.play();
                 }}
                 onMouseLeave={() => {
-                  if (!videoRef || params.play !== 'on-hover') return;
-                  videoRef.pause();
+                  if (!video || params.play !== 'on-hover') return;
+                  video.pause();
                 }}
                 loop
                 controls={params.controls}
@@ -229,19 +248,19 @@ export const VideoItem: FC<ItemProps<TVideoItem>> = ({ item, sectionId, onResize
                 <source src={item.params.url} />
               </video>
             )}
-            {renderCover && !imageCache.has(item.params.coverUrl ?? '') && (
+            {renderCover && coverCacheKey && !imageCache.has(coverCacheKey) && (
               <img
                 onMouseEnter={() => {
-                  if (!videoRef || params.play !== 'on-hover') return;
+                  if (!video || params.play !== 'on-hover') return;
                   setIsVideoInteracted(true);
-                  videoRef.play();
+                  video.play();
                 }}
                 src={item.params.coverUrl ?? ''}
                 className={`video-cover-${item.id}`}
                 onClick={() => {
-                  if (!videoRef) return;
+                  if (!video) return;
                   setIsVideoInteracted(true);
-                  videoRef.play();
+                  video.play();
                 }}
               />
             )}
@@ -249,12 +268,12 @@ export const VideoItem: FC<ItemProps<TVideoItem>> = ({ item, sectionId, onResize
               <div
                 className={`video-overlay-${item.id}`}
                 onClick={() => {
-                  if (!videoRef) return;
+                  if (!video) return;
                   setIsVideoInteracted(true);
                   if (isVideoPlaying) {
-                    videoRef.pause();
+                    video.pause();
                   } else {
-                    videoRef.play();
+                    video.play();
                   }
                 }}
               />

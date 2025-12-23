@@ -14,6 +14,7 @@ import { ImageItem as TImageItem } from '../../../../sdk/types/article/Item';
 import { useExemplary } from '../../../common/useExemplary';
 import { AssetsCacheContext } from '../../../assets/AssetsCacheProvider';
 import { useCacheImage } from '../../../assets/useCacheImage';
+import { getCacheAssetKey } from '../../../assets/getCacheAssetKey';
 
 export const ImageItem: FC<ItemProps<TImageItem>> = ({ item, sectionId, onResize, interactionCtrl, onVisibilityChange }) => {
   const id = useId();
@@ -29,6 +30,7 @@ export const ImageItem: FC<ItemProps<TImageItem>> = ({ item, sectionId, onResize
   const [wrapperRef, setWrapperRef] = useState<HTMLDivElement | null>(null);
   useRegisterResize(wrapperRef, onResize);
   const { url, hasGLEffect } = item.params;
+  const cacheKey = getCacheAssetKey(url, item.id);
   const fxCanvas = useRef<HTMLCanvasElement | null>(null);
   const isInitialRef = useRef(true);
 
@@ -79,8 +81,8 @@ export const ImageItem: FC<ItemProps<TImageItem>> = ({ item, sectionId, onResize
       transition: imgStateParams?.transition ?? 'none'
     };
   const isInteractive = opacity !== 0;
-  const renderImage = !hasGLEffect && !isFXAllowed;
-  useCacheImage(url, renderImage, inlineStyles, wrapperRef, `image image-${item.id}`);
+  const renderImage = !(hasGLEffect && isFXAllowed);
+  useCacheImage(cacheKey, renderImage, inlineStyles, wrapperRef, `image image-${item.id}`);
   useEffect(() => {
     onVisibilityChange?.(isInteractive);
   }, [isInteractive, onVisibilityChange]);
@@ -109,7 +111,7 @@ export const ImageItem: FC<ItemProps<TImageItem>> = ({ item, sectionId, onResize
               height={rectHeight}
             />
           )}
-          {renderImage && !imageCache.has(url) && (
+          {renderImage && !imageCache.has(cacheKey) && (
             <img
               alt=""
               className={`image image-${item.id}`}

@@ -26,7 +26,6 @@ export const Page: FC<PageProps> = ({ project, articlesData }) => {
   const startScene = project.pages.find(page => page.isStartScene)?.articleId ?? Object.keys(articlesData)[0];
   const scenes = Object.values(articlesData).map(({ article }) => ({ id: article.id }));
   const { relations, scenesAssets } = project;
-  usePreloadAssets(scenesAssets);
   return (
     <>
       <CNTRLHead project={project} />

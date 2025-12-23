@@ -1,5 +1,6 @@
 import { CSSProperties, FC, useState } from 'react';
 import { useCacheImage } from '../../assets/useCacheImage';
+import { getCacheAssetKey } from '../../assets/getCacheAssetKey';
 
 export type TSectionImage = {
   url: string;
@@ -16,6 +17,7 @@ interface Props {
 
 export const SectionImage: FC<Props> = ({ media, sectionId }) => {
   const { url, size, position, offsetX } = media;
+  const key = getCacheAssetKey(url, sectionId);
   const [container, setContainer] = useState<HTMLDivElement | null>(null);
   const isContainHeight = size === 'contain-height';
   const hasOffsetX = offsetX !== null;
@@ -27,7 +29,7 @@ export const SectionImage: FC<Props> = ({ media, sectionId }) => {
     left: isContainHeight ? '50%' : (hasOffsetX ? `${offsetX * 100}vw` : '0'),
     height: '100%'
   };
-  useCacheImage(url, true, styles, container, `image-background-${sectionId}`);
+  useCacheImage(key, true, styles, container, `image-background-${sectionId}`);
   return (
     <div
       ref={setContainer}

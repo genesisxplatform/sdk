@@ -1,9 +1,10 @@
 import { createContext, CSSProperties, FC, PropsWithChildren, useEffect, useState } from 'react';
+import { getCacheAssetKey } from './getCacheAssetKey';
 
 export const AssetsCacheContext = createContext<{ videoCache: Map<string, HTMLVideoElement>, imageCache: Map<string, HTMLImageElement> }>({ videoCache: new Map(), imageCache: new Map() });
 
 interface Props {
-  assets: string[];
+  assets: { url: string, id: string }[];
 }
 
 export const AssetsCacheProvider: FC<PropsWithChildren<Props>> = ({ children, assets }) => {
@@ -11,15 +12,15 @@ export const AssetsCacheProvider: FC<PropsWithChildren<Props>> = ({ children, as
   const [imageCache, setImageCache] = useState<Map<string, HTMLImageElement>>(new Map());
 
   useEffect(() => {
-    assets.forEach(asset => {
-      if (isVideoAsset(asset)) {
-        const video = getVideo(asset);
-        setVideoCache(prev => prev.set(asset, video));
+    assets.forEach(({ url, id }) => {
+      if (isVideoAsset(url)) {
+        const video = getVideo(url);
+        setVideoCache(prev => prev.set(getCacheAssetKey(url, id), video));
       } 
-      if (isImageAsset(asset)) {
+      if (isImageAsset(url)) {
         const img = new Image();
-        img.src = asset;
-        setImageCache(prev => prev.set(asset, img));
+        img.src = url;
+        setImageCache(prev => prev.set(getCacheAssetKey(url, id), img));
       }
     });
   }, [assets]);

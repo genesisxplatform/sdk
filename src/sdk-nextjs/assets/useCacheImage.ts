@@ -2,7 +2,7 @@ import { CSSProperties, useContext, useEffect, useState } from 'react';
 import { AssetsCacheContext } from './AssetsCacheProvider';
 
 export const useCacheImage = (
-  url: string | undefined | null,
+  key: string | null,
   renderImage: boolean,
   style: CSSProperties,
   container: HTMLElement | null,
@@ -13,20 +13,28 @@ export const useCacheImage = (
   const { imageCache } = useContext(AssetsCacheContext);
   const [image, setImage] = useState<HTMLImageElement | null>(null);
   useEffect(() => {
-    if (!container || !renderImage || !url) return;
-    const image = imageCache.get(url);
+    if (!container || !key) return;
+    const image = imageCache.get(key);
     if (!image) return;
+    if (!renderImage && container.contains(image)) {
+      container.removeChild(image);
+      return;
+    }
+    if (!renderImage) return;
     image.className = className;
     if (!container.contains(image)) {
       container.appendChild(image);
     }
-    if (onMouseEnter) {
-      image.addEventListener('mouseenter', onMouseEnter);
-    }
+    setImage(image);
+  }, [container, imageCache, key, renderImage]);
+  useEffect(() => {
+    if (!image) return;
     if (onClick) {
       image.addEventListener('click', onClick);
     }
-    setImage(image);
+    if (onMouseEnter) {
+      image.addEventListener('mouseenter', onMouseEnter);
+    }
     return () => {
       if (onMouseEnter) {
         image.removeEventListener('mouseenter', onMouseEnter);
@@ -35,7 +43,7 @@ export const useCacheImage = (
         image.removeEventListener('click', onClick);
       }
     };
-  }, [container, imageCache, url, renderImage]);
+  }, [onMouseEnter, onClick, image])
   if (image) {
     Object.assign(image.style, style);
   }

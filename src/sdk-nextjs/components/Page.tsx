@@ -7,7 +7,6 @@ import { KeyframeAny } from '../../sdk/types/keyframe/Keyframe';
 import { TransitionMachineContext } from '../provider/TransitionMachineContext';
 import { Scenes } from './Scenes/Scenes';
 import { FixedLayer } from './fixedLayers/FixedLayer';
-import { usePreloadAssets } from '../utils/usePrelaodAssets';
 import { PreviewWrapper } from './Preview/PreviewWrapper';
 import { PreviewListener } from './Preview/PreviewListener';
 import { AssetsCacheProvider } from '../assets/AssetsCacheProvider';

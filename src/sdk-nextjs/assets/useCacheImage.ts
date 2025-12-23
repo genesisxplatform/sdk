@@ -12,6 +12,7 @@ export const useCacheImage = (
 ) => {
   const { imageCache } = useContext(AssetsCacheContext);
   const [image, setImage] = useState<HTMLImageElement | null>(null);
+
   useEffect(() => {
     if (!container || !key) return;
     const image = imageCache.get(key);
@@ -27,6 +28,7 @@ export const useCacheImage = (
     }
     setImage(image);
   }, [container, imageCache, key, renderImage]);
+
   useEffect(() => {
     if (!image) return;
     if (onClick) {
@@ -43,7 +45,8 @@ export const useCacheImage = (
         image.removeEventListener('click', onClick);
       }
     };
-  }, [onMouseEnter, onClick, image])
+  }, [onMouseEnter, onClick, image]);
+
   if (image) {
     Object.assign(image.style, style);
   }

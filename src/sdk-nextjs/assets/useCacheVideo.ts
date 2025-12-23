@@ -16,6 +16,7 @@ export const useCacheVideo = (
   className: string = ''
 ) => {
   const { videoCache } = useContext(AssetsCacheContext);
+
   useEffect(() => {
     if (!container || !isVideoVisible) return;
     const { play, muted, controls } = params;

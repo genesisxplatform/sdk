@@ -12,10 +12,10 @@ interface Props {
 
 export const FixedLayerTransitionsProvider: FC<PropsWithChildren<Props>> = ({ fixedLayer, children }) => {
   const actorRef = TransitionMachineContext.useActorRef();
-  const { isSettling, isActive, startScene } = TransitionMachineContext.useSelector((state) => ({
+  const { isSettling, isTransitioning, startScene } = TransitionMachineContext.useSelector((state) => ({
     startScene: state.context.input.startScene,
     isSettling: state.matches('settling'),
-    isActive: state.matches('active'),
+    isTransitioning: state.matches('transitioning') || state.matches('instant_transitioning'),
    }));
   const transitionsRegistry = useMemo(() => new FixedLayerTransitionsRegistry(fixedLayer, startScene), [fixedLayer, startScene]);
 
@@ -23,19 +23,19 @@ export const FixedLayerTransitionsProvider: FC<PropsWithChildren<Props>> = ({ fi
     if (isSettling && actorRef) {
       const { context } = actorRef.getSnapshot();
       const { transition } = context;
-      if (!transition || transition.stage !== 'settling') return;
-      transitionsRegistry.notifyPrepareTransition(transition.to);
+      if (!transition || transition.stage !== 'settling' || transition.success) return;
+      transitionsRegistry.notifyOnActiveSceneChange(transition.from);
     }
   }, [isSettling, actorRef, transitionsRegistry]);
 
   useEffect(() => {
-    if (isActive && actorRef) {
+    if (isTransitioning && actorRef) {
       const { context } = actorRef.getSnapshot();
-      const { scenes } = context;
-      const [activeScene] = scenes;
-      transitionsRegistry.notifyOnActiveSceneChange(activeScene.id);
+      const { transition } = context;
+      if (!transition || transition.stage !== 'active') return;
+      transitionsRegistry.notifyOnActiveSceneChange(transition.to);
     }
-  }, [isActive, actorRef, transitionsRegistry]);
+  }, [isTransitioning, actorRef, transitionsRegistry]);
 
   return (
     <FixedLayerTransitionsContext.Provider value={transitionsRegistry}>

@@ -118,6 +118,7 @@ export class FixedLayerTransitionsRegistry implements InteractionsRegistryPort {
   }
 
   notifyOnActiveSceneChange(sceneId: SceneId) {
+    this.setActiveTransition(sceneId);
     this.itemsStages = this.itemsStages.map((stage) => {
       return {
         itemId: stage.itemId,
@@ -133,7 +134,7 @@ export class FixedLayerTransitionsRegistry implements InteractionsRegistryPort {
     this.activeSceneId = sceneId;
   }
 
-  notifyPrepareTransition(to: SceneId) {
+  setActiveTransition(to: SceneId) {
     this.activeTransition = this.transitions.find((transition) => transition.to === to && transition.from === this.activeSceneId);
   }
 

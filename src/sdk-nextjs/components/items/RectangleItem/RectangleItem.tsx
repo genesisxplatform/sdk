@@ -52,18 +52,6 @@ export const RectangleItem: FC<ItemProps<TRectangleItem>> = ({ item, sectionId, 
           className={`rectangle-${item.id}`}
           ref={setRef}
           style={{
-            ...(strokeFill ? {
-              borderColor: stroke,
-              borderWidth: strokeWidth !== undefined ? `${strokeWidth * 100}vw` : 0,
-              borderRadius: radius !== undefined ? `${radius * 100}vw` : 'inherit',
-              borderStyle: 'solid',
-              ...(strokeFill.type === 'image' ? {
-                backgroundPosition: 'center',
-                backgroundSize: strokeFill.behavior === 'repeat' ? `${strokeFill.backgroundSize}%` : strokeFill.behavior,
-                backgroundRepeat: strokeFill.behavior === 'repeat' ? 'repeat' : 'no-repeat'
-              } : {})
-            } : {}),
-            borderRadius: `${radius * 100}vw`,
             ...(angle !== undefined ? { transform: `rotate(${angle}deg)` } : {}),
             ...(blur !== undefined ? { filter: `blur(${blur * 100}vw)` } : {}),
             willChange: blur !== 0 && blur !== undefined ? 'transform' : 'unset',
@@ -88,11 +76,14 @@ export const RectangleItem: FC<ItemProps<TRectangleItem>> = ({ item, sectionId, 
                 fill={value}
                 itemId={item.id}
                 background={background}
+                transition={stateParams?.transition || ''}
                 solidTransition={solidTransition}
                 radius={radius}
                 strokeWidth={strokeWidth}
                 key={`fill-${i}-${fill.id}`}
                 fillId={fill.id}
+                isHighest={i === itemFill.length - 1}
+                borderColor={stroke}
               />
             );
           })}
@@ -131,10 +122,13 @@ function Fill({
     fill,
     itemId,
     background,
+    transition,
     solidTransition,
     radius,
     strokeWidth,
-  }: { fillId: string; fill: FillLayer; itemId: string; background: string; solidTransition: string; radius: number; strokeWidth: number; }) {
+    isHighest,
+    borderColor,
+  }: { fillId: string; fill: FillLayer; itemId: string; background: string; transition: string; solidTransition: string; radius: number; strokeWidth: number; isHighest: boolean; borderColor: string; }) {
   const isRotatedImage = fill.type === 'image' && fill.rotation && fill.rotation !== 0;
 
   return (
@@ -142,13 +136,19 @@ function Fill({
       key={fillId}
       className={fill.type === 'image' ? `image-fill-${itemId}` : `fill-${itemId}`}
       style={{
-        ...(fill.type === 'solid' ? { background, transition: solidTransition } : {}),
+        ...(fill.type === 'solid' ? {
+          background,
+          transition: transition && transition !== 'none' && transition.trim()
+            ? `${solidTransition}, ${transition}`
+            : solidTransition
+        } : {}),
         ...(fill.type === 'image'
           ? {
               transform: `rotate(${fill.rotation}deg)`,
               backgroundImage: `url(${fill.src})`,
               backgroundSize: fill.behavior === 'repeat' ? `${fill.backgroundSize}%` : fill.behavior,
               backgroundRepeat: fill.behavior === 'repeat' ? 'repeat' : 'no-repeat',
+              backgroundOrigin: 'border-box',
               opacity: fill.opacity
             }
           : { background }),
@@ -156,11 +156,18 @@ function Fill({
         mixBlendMode: fill.blendMode as any,
         top: 0,
         left: 0,
-        borderRadius: `calc(${radius * 100}vw - ${strokeWidth * 100}vw)`,
+        borderRadius: `${radius * 100}vw`,
         width: '100%',
         height: '100%',
         pointerEvents: 'none',
-        ...(isRotatedImage ? { overflow: 'hidden' } : {})
+        ...(isHighest ? {
+          borderColor,
+          borderWidth: `${strokeWidth * 100}vw`,
+          borderStyle: 'solid',
+          boxSizing: 'border-box'
+        } : {}),
+        ...(isRotatedImage ? { overflow: 'hidden' } : {}),
+        ...(fill.type !== 'solid' ? { transition } : {})
       }}
     >
     </div>

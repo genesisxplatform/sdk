@@ -1,6 +1,6 @@
 export interface Interaction {
   id: string;
-  triggers: (InteractionItemTrigger | InteractionScrollTrigger)[];
+  triggers: (InteractionItemTrigger | InteractionScrollTrigger | SceneTransitionTrigger)[];
   states: InteractionState[];
   startStateId: string;
 }
@@ -8,6 +8,12 @@ export interface Interaction {
 export interface InteractionItemTrigger {
   itemId: string;
   type: 'hover-in' | 'hover-out' | 'click';
+  from: StateId;
+  to: StateId;
+}
+
+export interface SceneTransitionTrigger {
+  type: 'scene-transition';
   from: StateId;
   to: StateId;
 }

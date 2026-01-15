@@ -138,12 +138,12 @@ export class FixedLayerTransitionsRegistry implements InteractionsRegistryPort {
     this.activeTransition = this.transitions.find((transition) => transition.to === to && transition.from === this.activeSceneId);
   }
 
-  notifyTransitionStartForItems(activeStateId: string) {
+  notifyTransitionStartForItems(sceneId: string) {
     const itemsIds = this.itemsStages.map((stage) => stage.itemId);
     for (const itemId of itemsIds) {
       const ctrl = this.ctrls.get(itemId);
       const item = this.items.find((item) => item.id === itemId)!;
-      const keys = Object.keys(item.state[activeStateId] ?? {});
+      const keys = Object.keys(item.state[sceneId] ?? {});
       ctrl?.handleTransitionStart?.(keys);
     }
   }

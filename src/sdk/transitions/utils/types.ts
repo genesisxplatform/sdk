@@ -18,6 +18,7 @@ export type PreparingTransition = {
 export type ActiveTransition = {
   stage: 'active';
   direction: Direction;
+  duration?: number;
   type: 'slide' | 'fade';
   from: string;
   to: string;
@@ -41,6 +42,7 @@ export type InstantTransition = {
   from: string;
   to: string;
   direction?: Direction;
+  duration?: number;
 };
 
 export type TransitionScene = {

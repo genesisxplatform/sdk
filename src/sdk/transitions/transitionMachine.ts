@@ -72,6 +72,7 @@ setup({
               const from = activeScene.id;
               return {
                 stage: 'active',
+                duration: event.duration,
                 from,
                 to,
                 ...(transition === 'slide' ? { direction: event.direction } : {}),
@@ -79,14 +80,14 @@ setup({
               };
             },
             scenes: ({ context, event }) => {
-              const { scenes } = context;
+              const { scenes, input: { previewWindow } } = context;
               const activeScene = scenes[0];
               if (!activeScene) {
                 throw new Error('Active scene not found');
               }
               const { to, transition } = event;
               const newScenes = transition === 'slide'
-                ? getScenesOnSlideStart({ from: activeScene.id, to }, { x: 0, y: 0 }, event.direction)
+                ? getScenesOnSlideStart({ from: activeScene.id, to }, { x: 0, y: 0 }, event.direction, previewWindow ?? window)
                 : getScenesOnFadeStart({ from: activeScene.id, to }, 0);
               return newScenes;
             }
@@ -123,12 +124,13 @@ setup({
               const { input, transition, scenes } = context;
               const activeScene = scenes[0];
               if (!activeScene) return context.scenes;
+              const { previewWindow } = input;
               const relation = findRelation(input.relations, activeScene.id, direction);
               if (!transition || !('startX' in transition) || !('startY' in transition)) return context.scenes;
               const start = { x: transition.startX, y: transition.startY };
-              const { deltaX, deltaY, progress } = getDeltaAndProgress(event.touchData, start, direction);
+              const { deltaX, deltaY, progress } = getDeltaAndProgress(event.touchData, start, direction, previewWindow ?? window);
               const newScenes = relation.type === 'slide'
-                ? getScenesOnSlideStart(relation, { x: deltaX, y: deltaY }, direction)
+                ? getScenesOnSlideStart(relation, { x: deltaX, y: deltaY }, direction, window)
                 : getScenesOnFadeStart(relation, progress);
               return newScenes;
             }
@@ -157,10 +159,10 @@ setup({
               };
             },
             scenes: ({ context, event }) => {
-              const { transition, scenes } = context;
+              const { transition, scenes, input: { previewWindow } } = context;
               if (!isActiveSwipeTransition(transition)) return scenes;
               const start = { x: transition.startX, y: transition.startY };
-              const { deltaX, deltaY, progress } = getDeltaAndProgress(event.touchData, start, transition.direction);
+              const { deltaX, deltaY, progress } = getDeltaAndProgress(event.touchData, start, transition.direction, previewWindow ?? window);
               const newScenes = transition.type === 'slide'
                 ? getScenesOnSlideProgressUpdate(scenes, { x: deltaX, y: deltaY })
                 : getScenesOnFadeProgressUpdate(scenes, transition.to, progress);
@@ -204,11 +206,11 @@ setup({
           target: 'settling',
           actions: assign({
             scenes: ({ context }) => {
-              const { transition, scenes } = context;
+              const { transition, scenes, input: { previewWindow } } = context;
               if (!transition || transition.stage !== 'active' || !('type' in transition)) {
                 return scenes;
               }
-              return getScenesOnInstantTransition(scenes, transition as InstantTransition);
+              return getScenesOnInstantTransition(scenes, transition as InstantTransition, previewWindow ?? window);
             },
             transition: ({ context }) => {
               const { transition } = context;
@@ -221,6 +223,7 @@ setup({
                 type: transition.type,
                 from: transition.from,
                 to: transition.to,
+                ...(transition.duration ? { duration: transition.duration } : {}),
               };
             }
           })
@@ -268,8 +271,8 @@ export type TransitionContext = {
 
 export type TransitionEvents =
   | { type: 'SWIPE_PREPARE'; touchData: { startX: number; startY: number; }; }
-  | { type: 'TRANSITION_TRIGGER'; transition: 'slide'; to: string; direction: Direction; }
-  | { type: 'TRANSITION_TRIGGER'; transition: 'fade'; to: string; }
+  | { type: 'TRANSITION_TRIGGER'; transition: 'slide'; to: string; direction: Direction; duration: number; }
+  | { type: 'TRANSITION_TRIGGER'; transition: 'fade'; to: string; duration: number; }
   | { type: 'SWIPE_START'; direction: Direction; touchData: { x: number; y: number; }; }
   | { type: 'SWIPE_CANCEL'; }
   | { type: 'SWIPE_END'; }
@@ -287,6 +290,7 @@ export type TransitionMachineInput = {
   startScene: string;
   scenes: Scene[];
   relations: Relation[];
+  previewWindow: Window | null;
 };
 
 type Scene = {

@@ -10,6 +10,8 @@ import { FixedLayer } from './fixedLayers/FixedLayer';
 import { PreviewWrapper } from './Preview/PreviewWrapper';
 import { PreviewListener } from './Preview/PreviewListener';
 import { AssetsCacheProvider } from '../assets/AssetsCacheProvider';
+import { InOutTransitionProvider } from '../provider/InOutTransitionContext';
+import { TransitionMachineContextProvider } from '../provider/TransitionMachineContextProvider';
 
 export interface PageProps {
   project: Project;
@@ -30,22 +32,16 @@ export const Page: FC<PageProps> = ({ project, articlesData }) => {
       <CNTRLHead project={project} />
       {afterBodyOpen}
         <PreviewWrapper relations={relations} startScene={startScene}>
-          <TransitionMachineContext.Provider
-            options={{
-              input: {
-                startScene,
-                relations,
-                scenes,
-              }
-            }}
-          >
-            <PreviewListener />
-            <AssetsCacheProvider assets={scenesAssets}>
-              {project.foreground && !project.foreground.hidden && <FixedLayer layer={project.foreground} type="foreground" />}
-              <Scenes articlesData={articlesData} />
-              {project.background && !project.background.hidden && <FixedLayer layer={project.background} type="background" />}
-            </AssetsCacheProvider>
-          </TransitionMachineContext.Provider>
+          <TransitionMachineContextProvider startScene={startScene} relations={relations} scenes={scenes}>
+            <InOutTransitionProvider>
+              <PreviewListener />
+              <AssetsCacheProvider assets={scenesAssets}>
+                {project.foreground && !project.foreground.hidden && <FixedLayer layer={project.foreground} type="foreground" />}
+                <Scenes articlesData={articlesData} />
+                {project.background && !project.background.hidden && <FixedLayer layer={project.background} type="background" />}
+              </AssetsCacheProvider>
+            </InOutTransitionProvider>
+          </TransitionMachineContextProvider>
         </PreviewWrapper>
       {beforeBodyClose}
     </>

@@ -17,6 +17,7 @@ export const PreviewListener = () => {
         actorRef.send({
           type: 'TRANSITION_TRIGGER',
           transition: transitionType,
+          duration: 250,
           to,
           direction
         });

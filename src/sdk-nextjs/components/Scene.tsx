@@ -2,6 +2,7 @@ import { CSSProperties, FC, PropsWithChildren, useCallback, useEffect, useRef } 
 import { useLayoutDeviation } from '../common/useLayoutDeviation';
 import { TransitionMachineContext } from '../provider/TransitionMachineContext';
 import { Direction } from '../../sdk/transitions/utils/types';
+import { useInteractionsRegistry } from '../provider/InteractionsContext';
 
 interface Props {
   id: string;
@@ -17,18 +18,28 @@ interface Props {
 
 export const Scene: FC<PropsWithChildren<Props>> = ({ children, id, styles: sceneStyles, elRef }) => {
   const { layoutDeviation } = useLayoutDeviation();
+  const interactionsRegistry = useInteractionsRegistry();
   const layoutDeviationStyle = { '--layout-deviation': layoutDeviation } as CSSProperties;
   const actorRef = TransitionMachineContext.useActorRef();
-  const { isControlledTransitioning, isSettling, isInstantTransitioning } = TransitionMachineContext.useSelector((state) => ({
-   isControlledTransitioning: state.matches('transitioning'),
-   isSettling: state.matches('settling'),
-   isInstantTransitioning: state.matches('instant_transitioning')
-  }));
+  const { isControlledTransitioning, isSettling, isInstantTransitioning } = TransitionMachineContext.useSelector((state) => {
+    return {
+      isControlledTransitioning: state.matches('transitioning'),
+      isSettling: state.matches('settling'),
+      isInstantTransitioning: state.matches('instant_transitioning')
+     }
+  });
   const type = TransitionMachineContext.useSelector((state) => {
     const { transition } = state.context;
     if (!transition || !('type' in transition)) return undefined;
     return transition.type;
   });
+
+  const duration = TransitionMachineContext.useSelector((state) => {
+    const { transition } = state.context;
+    if (!transition || !('duration' in transition)) return undefined;
+    return transition.duration;
+  });
+
   const isTransitioningRef = useRef(false);
   const isTransitioning = isControlledTransitioning || isInstantTransitioning;
 
@@ -110,6 +121,7 @@ export const Scene: FC<PropsWithChildren<Props>> = ({ children, id, styles: scen
     const el = elRef.current;
     if (!isSettling || !el) return;
     const handleTransitionEnd = (e: TransitionEvent) => {
+      if (e.target !== el) return;
       const { context } = actorRef.getSnapshot();
       const { transition } = context;
       if (!transition || transition.stage !== 'settling') {
@@ -141,9 +153,31 @@ export const Scene: FC<PropsWithChildren<Props>> = ({ children, id, styles: scen
     }
   }, [isTransitioning, actorRef, id]);
 
+  useEffect(() => {
+    if (!interactionsRegistry || !actorRef) return;
+    const { context } = actorRef.getSnapshot();
+    const { transition } = context;
+    if (!transition || transition.stage !== 'active') return;
+    const { from, to } = transition;
+    if (from === id) {
+      interactionsRegistry.notifySceneOutTransition();
+    }
+    if (to === id) {
+      interactionsRegistry.notifySceneInTransition();
+    }
+  }, [interactionsRegistry, id, isTransitioning, actorRef]);
+
+  useEffect(() => {
+    if (isSettling && actorRef && interactionsRegistry) {
+      const { context } = actorRef.getSnapshot();
+      const { transition } = context;
+      if (!transition || transition.stage !== 'settling' || transition.success) return;
+      interactionsRegistry.notifySceneOutTransitionCancel();
+    }
+  }, [isSettling, actorRef, interactionsRegistry]);
+
   const isFixed = isControlledTransitioning || isSettling || isInstantTransitioning;
   const transitionStyle = type === 'slide' ? 'transform' : 'opacity';
-
   return (
     <>
       <div
@@ -156,7 +190,7 @@ export const Scene: FC<PropsWithChildren<Props>> = ({ children, id, styles: scen
           zIndex: 1,
           position: isFixed ? 'fixed' : 'absolute',
           transform: sceneStyles && (sceneStyles.x !== 0 || sceneStyles.y !== 0) ? `translate(${sceneStyles.x}px, ${sceneStyles.y}px)` : 'none',
-          transition: isSettling || isInstantTransitioning ? `${transitionStyle} 0.25s ease-out` : 'none',
+          transition: isSettling || isInstantTransitioning ? `${transitionStyle} ${duration ?? 250}ms ease-out` : 'none',
           overflowY: isFixed ? 'hidden' : 'scroll',
           overflowX: 'clip',
           opacity: sceneStyles?.opacity ?? 1,

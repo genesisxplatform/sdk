@@ -16,6 +16,7 @@ export const LinkWrapper: React.FC<Props> = ({ link, children }) => {
     actorRef.send({
       type: 'TRANSITION_TRIGGER',
       transition: link.animation as 'slide' | 'fade',
+      duration: link.duration,
       to: link.value,
       direction: link.direction
     });

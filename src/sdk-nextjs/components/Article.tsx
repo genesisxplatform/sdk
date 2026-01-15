@@ -32,7 +32,6 @@ export const Article: FC<Props> = ({ article, styles, keyframes }) => {
   const id = useId();
   const keyframesRepo = useMemo(() => new Keyframes(keyframes), [keyframes]);
   const webglContextManager = useMemo(() => new WebGLContextManager(), []);
-
   return (
     <ArticleRectContext.Provider value={articleRectObserver}>
       <InteractionsProvider article={article}>

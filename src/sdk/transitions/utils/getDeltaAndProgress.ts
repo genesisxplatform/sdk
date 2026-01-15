@@ -4,7 +4,8 @@ import type { Direction } from './types';
 export function getDeltaAndProgress(
   current: Delta,
   start: Delta,
-  direction: Direction
+  direction: Direction,
+  window: Window
 ) {
   const axis = getAxis(direction);
   const deltaX = axis === 'horizontal' ? current.x - start.x : 0;

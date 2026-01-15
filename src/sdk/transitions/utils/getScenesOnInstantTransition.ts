@@ -2,11 +2,12 @@ import type { Direction, InstantTransition, TransitionScene } from './types';
 
 export function getScenesOnInstantTransition(
   scenes: TransitionScene[],
-  transition: InstantTransition
+  transition: InstantTransition,
+  window: Window
 ): TransitionScene[] {
   const { type, to, direction } = transition;
   if (type === 'slide' && direction) {
-    return getScenesOnInstantSlideTransition(scenes, to, direction);
+    return getScenesOnInstantSlideTransition(scenes, to, direction, window);
   } else if (type === 'fade') {
     return getScenesOnInstantFadeTransition(scenes);
   }
@@ -17,7 +18,8 @@ export function getScenesOnInstantTransition(
 function getScenesOnInstantSlideTransition(
   scenes: TransitionScene[],
   to: string,
-  direction: Direction
+  direction: Direction,
+  window: Window
 ): TransitionScene[] {
   let fromFinalX = 0;
   let fromFinalY = 0;

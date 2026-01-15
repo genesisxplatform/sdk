@@ -69,7 +69,6 @@ export const RichTextItem: FC<ItemProps<TRichTextItem>> = ({ item, sectionId, on
           fontStyle: item.params.fontStyle ? item.params.fontStyle : 'normal',
           verticalAlign: item.params.verticalAlign,
           fontVariant: item.params.fontVariant,
-          color: color.fmt('rgba'),
           textTransform: item.params.textTransform,
           transition
         }}

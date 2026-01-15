@@ -2,6 +2,8 @@ import { createContext, FC, PropsWithChildren, useCallback, useContext, useEffec
 import { InteractionsRegistry } from '../interactions/InteractionsRegistry';
 import { Article } from '../../sdk/types/article/Article';
 import { ArticleRectContext } from './ArticleRectContext';
+import { InOutTransitionContext } from './InOutTransitionContext';
+import { TransitionMachineContext } from './TransitionMachineContext';
 
 export const InteractionsContext = createContext<InteractionsRegistry | undefined>(undefined);
 
@@ -11,8 +13,11 @@ interface Props {
 
 export const InteractionsProvider: FC<PropsWithChildren<Props>> = ({ article, children }) => {
   const articleRectObserver = useContext(ArticleRectContext);
+  const startScene = TransitionMachineContext.useSelector((state) => (state.context.input.startScene));
+  const { isStartSceneInitialized, setIsStartSceneInitialized } = useContext(InOutTransitionContext);
   const registry = useMemo(() => {
-    return new InteractionsRegistry(article);
+    return new InteractionsRegistry(article, isStartSceneInitialized);
+   // do not add isStartSceneInitialized to the dependencies array, it will cause infinite re-render
   }, [article]);
 
   useEffect(() => {
@@ -25,13 +30,16 @@ export const InteractionsProvider: FC<PropsWithChildren<Props>> = ({ article, ch
   }, [registry, articleRectObserver]);
 
   const notifyLoad = useCallback(() => {
+    if (startScene === article.id) {
+      setIsStartSceneInitialized(true);
+    }
     if (!registry) return;
     requestAnimationFrame(() => {
       setTimeout(() => {
         registry.notifyLoad();
       }, 0);
     });
-  }, [registry]);
+  }, [registry, startScene, article.id]);
 
   useEffect(() => {
     if (document.readyState === 'complete') {

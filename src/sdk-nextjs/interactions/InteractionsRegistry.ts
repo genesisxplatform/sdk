@@ -4,6 +4,7 @@ import { ItemAny } from '../../sdk/types/article/Item';
 import { Interaction, InteractionItemTrigger } from '../../sdk/types/article/Interaction';
 import { Article } from '../../sdk/types/article/Article';
 import { ArticleItemType } from '../../sdk/types/article/ArticleItemType';
+import { ulid } from 'ulid';
 
 export class InteractionsRegistry implements InteractionsRegistryPort {
   private ctrls: Map<ItemId, ItemInteractionCtrl> = new Map();
@@ -11,12 +12,16 @@ export class InteractionsRegistry implements InteractionsRegistryPort {
   private interactions: Interaction[];
   private stateItemsIdsMap: StateItemsIdsMap;
   private interactionStateMap: InteractionStateMap;
+  private inTransitionDefaultStateId: string = ulid();
+  private outTransitionStartStateId: string = ulid();
+  private isStartSceneInitialized: boolean;
   private itemsStages: ItemStages;
   private activeStateIdInteractionIdMap: Record<StateId, InteractionId>;
 
-  constructor(article: Article) {
+  constructor(article: Article, isStartSceneInitialized: boolean) {
+    this.isStartSceneInitialized = isStartSceneInitialized;
     this.items = this.unpackItems(article);
-    const interactions = article.interactions ?? [];
+    const interactions = [...article.interactions, this.getOutTransitionInteraction(), this.getInTransitionInteraction()];
     const activeStatesIds = interactions.reduce<StateId[]>((map, inter) => {
       const activeStateId = inter.states.find((state) => state.id !== inter.startStateId)?.id;
       if (!activeStateId) {
@@ -107,6 +112,69 @@ export class InteractionsRegistry implements InteractionsRegistryPort {
       }
     }
     return available;
+  }
+
+  notifySceneInTransition() {
+    const transitioningItems = this.stateItemsIdsMap['in'] ?? [];
+    this.setCurrentStateForInteraction('in-transition', this.inTransitionDefaultStateId);
+    const timestamp = Date.now();
+    this.itemsStages = this.itemsStages.map((stage) => {
+      if (stage.interactionId !== 'in-transition') return stage;
+      return {
+        itemId: stage.itemId,
+        interactionId: stage.interactionId,
+        type: 'transitioning',
+        from: 'in',
+        to: this.inTransitionDefaultStateId,
+        direction: 'out',
+        updated: timestamp
+      };
+    });
+    const itemsToNotify = new Set<ItemId>(transitioningItems);
+    this.notifyItemCtrlsChange(Array.from(itemsToNotify));
+    this.notifyTransitionStartForItems(transitioningItems, this.inTransitionDefaultStateId);
+  }
+
+  notifySceneOutTransition() {
+    const transitioningItems = this.stateItemsIdsMap['out'] ?? [];
+    this.setCurrentStateForInteraction('out-transition', 'out');
+    const timestamp = Date.now();
+    this.itemsStages = this.itemsStages.map((stage) => {
+      if (stage.interactionId !== 'out-transition') return stage;
+      return {
+        itemId: stage.itemId,
+        interactionId: stage.interactionId,
+        type: 'transitioning',
+        from: stage.type === 'transitioning' ? stage.to : stage.stateId!,
+        to: 'out',
+        direction: 'in',
+        updated: timestamp
+      };
+    });
+    const itemsToNotify = new Set<ItemId>(transitioningItems);
+    this.notifyItemCtrlsChange(Array.from(itemsToNotify));
+    this.notifyTransitionStartForItems(transitioningItems, 'out');
+  }
+
+  notifySceneOutTransitionCancel() {
+    const transitioningItems = this.stateItemsIdsMap['out'] ?? [];
+    this.setCurrentStateForInteraction('out-transition', this.outTransitionStartStateId);
+    const timestamp = Date.now();
+    this.itemsStages = this.itemsStages.map((stage) => {
+      if (stage.interactionId !== 'out-transition') return stage;
+      return {
+        itemId: stage.itemId,
+        interactionId: stage.interactionId,
+        type: 'transitioning',
+        from: 'out',
+        to: this.outTransitionStartStateId,
+        direction: 'out',
+        updated: timestamp
+      };
+    });
+    const itemsToNotify = new Set<ItemId>(transitioningItems);
+    this.notifyItemCtrlsChange(Array.from(itemsToNotify));
+    this.notifyTransitionStartForItems(transitioningItems, this.outTransitionStartStateId);
   }
 
   notifyLoad() {
@@ -334,6 +402,17 @@ export class InteractionsRegistry implements InteractionsRegistryPort {
       const itemStatesMap = item.state;
       if (!itemStatesMap) continue;
       for (const stateId of Object.keys(itemStatesMap)) {
+        if (stateId === 'in' && this.isStartSceneInitialized) {
+          stages.push({
+            itemId: item.id,
+            interactionId: 'in-transition',
+            type: 'active',
+            isStartState: false,
+            updated: timestamp,
+            stateId: 'in'
+          });
+          continue;
+        }
         const interactionId = this.activeStateIdInteractionIdMap[stateId];
         if (!interactionId) continue;
         stages.push({
@@ -347,6 +426,25 @@ export class InteractionsRegistry implements InteractionsRegistryPort {
       }
     }
     return stages;
+  }
+
+  private getOutTransitionInteraction() {
+    return {
+      id: 'out-transition',
+      triggers: [],
+      states: [{ id: this.outTransitionStartStateId }, { id: 'out' }],
+      startStateId: this.outTransitionStartStateId
+    };
+  }
+
+  private getInTransitionInteraction() {
+    const startStateId = 'in';
+    return {
+      id: 'in-transition',
+      triggers: [],
+      states: [{ id: startStateId }, { id: this.inTransitionDefaultStateId }],
+      startStateId: this.inTransitionDefaultStateId
+    }
   }
 }
 

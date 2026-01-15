@@ -17,10 +17,7 @@ export const Preview: FC<PropsWithChildren<Props>> = ({ children, relations, sta
   const [iframeRef, setIframeRef] = useState<HTMLIFrameElement | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [activeScene, setActiveScene] = useState<string>(startScene);
-  console.log('startScene', startScene);
-  console.log('relations', relations);
   const [activeSides, setActiveSides] = useState<{ north: boolean; south: boolean; east: boolean; west: boolean }>(getAvailableTransitions(startScene, relations));
-  console.log('activeSides', activeSides);
   const handleSwipeToScene = (direction: 'north' | 'south' | 'east' | 'west') => {
     if (!iframeRef || !iframeRef.contentWindow || !iframeRef.contentDocument) return;
     setIsTransitioning(true);

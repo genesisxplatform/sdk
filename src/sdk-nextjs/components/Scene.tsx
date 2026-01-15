@@ -163,7 +163,7 @@ export const Scene: FC<PropsWithChildren<Props>> = ({ children, id, styles: scen
       interactionsRegistry.notifySceneOutTransition();
     }
     if (to === id) {
-        interactionsRegistry.notifySceneInTransition();
+      interactionsRegistry.notifySceneInTransition();
     }
   }, [interactionsRegistry, id, isTransitioning, actorRef]);
 

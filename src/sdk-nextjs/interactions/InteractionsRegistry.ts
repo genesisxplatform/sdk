@@ -132,7 +132,7 @@ export class InteractionsRegistry implements InteractionsRegistryPort {
     });
     const itemsToNotify = new Set<ItemId>(transitioningItems);
     this.notifyItemCtrlsChange(Array.from(itemsToNotify));
-    this.notifyTransitionStartForItems(transitioningItems, this.inTransitionDefaultStateId);
+    this.notifyTransitionStartForItems(transitioningItems, 'in');
   }
 
   notifySceneOutTransition() {

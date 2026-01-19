@@ -168,7 +168,7 @@ export const Preview: FC<PropsWithChildren<Props>> = ({ children, relations, sta
           }
           .iframe-preview {
             width: 390px;
-            max-height: 844px;
+            max-height: 700px;
             height: 100%;
             border: none;
             z-index: 1000;

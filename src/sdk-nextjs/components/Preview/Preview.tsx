@@ -158,7 +158,7 @@ export const Preview: FC<PropsWithChildren<Props>> = ({ children, relations, sta
           }
           .preview-inner {
             width: 100%;
-            max-height: 844px;
+            max-height: 700px;
             height: 100%;
             position: relative;
             display: flex;

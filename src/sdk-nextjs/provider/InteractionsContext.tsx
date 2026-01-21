@@ -23,8 +23,7 @@ export const InteractionsProvider: FC<PropsWithChildren<Props>> = ({ article, ch
   useEffect(() => {
     if (!registry || !articleRectObserver) return;
     const handleScroll = () => {
-      const scrollY = window.scrollY;
-      registry.notifyScroll(scrollY);
+      registry.notifyScroll(articleRectObserver.scroll * articleRectObserver.width);
     };
     return articleRectObserver.on('scroll', handleScroll);
   }, [registry, articleRectObserver]);

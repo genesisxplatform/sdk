@@ -9,6 +9,7 @@ import { ulid } from 'ulid';
 export class InteractionsRegistry implements InteractionsRegistryPort {
   private ctrls: Map<ItemId, ItemInteractionCtrl> = new Map();
   private items: ItemAny[];
+  private articleWidth: number = 1;
   private interactions: Interaction[];
   private stateItemsIdsMap: StateItemsIdsMap;
   private interactionStateMap: InteractionStateMap;
@@ -60,6 +61,10 @@ export class InteractionsRegistry implements InteractionsRegistryPort {
 
   register(itemId: ItemId, ctrl: ItemInteractionCtrl) {
     this.ctrls.set(itemId, ctrl);
+  }
+
+  setArticleWidth(width: number) {
+    this.articleWidth = width;
   }
 
   getStatePropsForItem(itemId: string) {
@@ -227,14 +232,14 @@ export class InteractionsRegistry implements InteractionsRegistryPort {
       const activeStateId = interaction.states.find((state) => state.id !== interaction.startStateId)?.id;
       const matchingTrigger = interaction.triggers.find((trigger) => {
         if (!('position' in trigger) || trigger.position === 0) return false;
-        const triggerPosition = trigger.position * window.innerWidth;
+        const triggerPosition = trigger.position * this.articleWidth;
         const isScrolledPastTrigger = triggerPosition < position;
         if (!isScrolledPastTrigger && !trigger.isReverse) return false;
         const stateId = isScrolledPastTrigger ? trigger.from : trigger.to;
         return stateId === currentStateId;
       });
       if (!matchingTrigger || !('position' in matchingTrigger) || !activeStateId) continue;
-      const triggerPosition = matchingTrigger.position * window.innerWidth;
+      const triggerPosition = matchingTrigger.position * this.articleWidth;
       const isScrolledPastTrigger = triggerPosition < position;
       const targetStateId = isScrolledPastTrigger ? matchingTrigger.to : matchingTrigger.from;
       this.setCurrentStateForInteraction(interaction.id, targetStateId);

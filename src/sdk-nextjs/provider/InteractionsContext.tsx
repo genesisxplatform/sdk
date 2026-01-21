@@ -28,6 +28,15 @@ export const InteractionsProvider: FC<PropsWithChildren<Props>> = ({ article, ch
     return articleRectObserver.on('scroll', handleScroll);
   }, [registry, articleRectObserver]);
 
+  useEffect(() => {
+    if (!registry || !articleRectObserver) return;
+    registry.setArticleWidth(articleRectObserver.width)
+    const handleResize = () => {
+      registry.setArticleWidth(articleRectObserver.width);
+    };
+    return articleRectObserver.on('resize', handleResize);
+  }, [registry, articleRectObserver]);
+
   const notifyLoad = useCallback(() => {
     if (startScene === article.id) {
       setIsStartSceneInitialized(true);

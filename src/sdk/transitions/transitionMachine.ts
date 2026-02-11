@@ -11,7 +11,8 @@ import { getScenesOnInstantTransition } from './utils/getScenesOnInstantTransiti
 import { isActiveSwipeTransition } from './utils/isActiveSwipeTransition';
 import { getDeltaAndProgress } from './utils/getDeltaAndProgress';
 
-const SWIPE_SUCCESS_THRESHOLD = 130;
+const SWIPE_SLIDE_SUCCESS_THRESHOLD = 130;
+const SWIPE_FADE_SUCCESS_THRESHOLD = 20;
 
 export const transitionMachine = 
 setup({
@@ -176,7 +177,8 @@ setup({
             transition: ({ context }) => {
               const { transition } = context;
               if (!isActiveSwipeTransition(transition)) return null;
-              const transitionSuccess = isTransitionSuccess(transition, SWIPE_SUCCESS_THRESHOLD);
+              const threshold = transition.type === 'slide' ? SWIPE_SLIDE_SUCCESS_THRESHOLD : SWIPE_FADE_SUCCESS_THRESHOLD;
+              const transitionSuccess = isTransitionSuccess(transition, threshold);
               return {
                 stage: 'settling',
                 success: transitionSuccess,
@@ -189,7 +191,8 @@ setup({
               const { transition, scenes } = context;
               if (!isActiveSwipeTransition(transition)) return scenes;
               const { type } = transition;
-              const transitionSuccess = isTransitionSuccess(transition, SWIPE_SUCCESS_THRESHOLD);
+              const threshold = transition.type === 'slide' ? SWIPE_SLIDE_SUCCESS_THRESHOLD : SWIPE_FADE_SUCCESS_THRESHOLD;
+              const transitionSuccess = isTransitionSuccess(transition, threshold);
               const newScenes = type === 'slide'
                 ? getScenesOnSlideEnd(scenes, transition, transitionSuccess)
                 : getScenesOnFadeEnd(scenes);

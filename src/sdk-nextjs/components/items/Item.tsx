@@ -123,8 +123,6 @@ export const Item: FC<ItemWrapperProps> = ({ item, sectionId, articleHeight, isP
 
   const isRichText = isItemType(item, ArticleItemType.RichText);
   const anchorSide = item.area.anchorSide ?? AnchorSide.Top;
-  const positionType = item.area.positionType ?? PositionType.ScreenBased;
-  const isScreenBasedBottom = positionType === PositionType.ScreenBased && anchorSide === AnchorSide.Bottom;
   const scale = innerStateProps?.styles?.scale ?? itemScale;
   const hasClickTriggers = interactionCtrl?.getHasTrigger(item.id, 'click') ?? false;
   const scroll = rectObserver?.scroll;
@@ -141,9 +139,8 @@ export const Item: FC<ItemWrapperProps> = ({ item, sectionId, articleHeight, isP
         interactionCtrl?.handleTransitionEnd?.(e.propertyName);
       }}
       style={{
-        top: isScreenBasedBottom ? 'unset' : getItemTopStyle(realTop, anchorSide),
+        top: getItemTopStyle(realTop, anchorSide),
         left: `${left * 100}vw`,
-        bottom: isScreenBasedBottom ? `${-realTop * 100}vw` : 'unset',
         ...(wrapperHeight !== undefined ? { height: `${wrapperHeight * 100}vw` } : {}),
         transition: wrapperStateProps?.transition ?? 'none'
       }}
@@ -226,8 +223,7 @@ export const Item: FC<ItemWrapperProps> = ({ item, sectionId, articleHeight, isP
               z-index: ${item.area.zIndex};
               ${!isInGroup && stickyFix}
               pointer-events: none;
-              bottom: ${isScreenBasedBottom ? `${-item.area.top * 100}vw` : 'unset'};
-              top: ${isScreenBasedBottom ? 'unset' : getItemTopStyle(item.area.top, item.area.anchorSide)};
+              top: ${getItemTopStyle(item.area.top, item.area.anchorSide)};
               left: ${item.area.left * 100}vw;
             }
       `}

@@ -10,7 +10,7 @@ import { CompoundChild } from './CompoundChild';
 import { useCompoundItem } from './useCompoundItem';
 import { CompoundItem as TCompoundItem } from '../../../../sdk/types/article/Item';
 
-export const CompoundItem: FC<ItemProps<TCompoundItem>> = ({ item, sectionId, onResize, interactionCtrl, onVisibilityChange }) => {
+export const CompoundItem: FC<ItemProps<TCompoundItem>> = ({ item, sectionId, onResize, interactionCtrl, onVisibilityChange, articleId }) => {
   const id = useId();
   const { items } = item;
   const itemAngle = useItemAngle(item, sectionId);
@@ -39,6 +39,7 @@ export const CompoundItem: FC<ItemProps<TCompoundItem>> = ({ item, sectionId, on
           {items && items.map(item => (
             <CompoundChild
               item={item}
+              articleId={articleId}
               key={item.id}
               sectionId={sectionId}
               isParentVisible={isInteractive}

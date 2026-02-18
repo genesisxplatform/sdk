@@ -16,9 +16,10 @@ interface Props {
   section: TSection;
   children: SectionChild[];
   data?: any;
+  articleId: string;
 }
 
-export const Section: FC<Props> = ({ section, data, children }) => {
+export const Section: FC<Props> = ({ section, data, children, articleId }) => {
   const id = useId();
   const sectionRef = useRef<HTMLDivElement | null>(null);
   const { customSections } = useCntrlContext();
@@ -56,10 +57,10 @@ export const Section: FC<Props> = ({ section, data, children }) => {
               }}
             >
               {media.type === 'video' && (
-                <SectionVideo container={sectionRef.current} sectionId={section.id} media={media} />
+                <SectionVideo container={sectionRef.current} sectionId={section.id} media={media} articleId={articleId} />
               )}
               {media.type === 'image' && (
-                <SectionImage media={media} sectionId={section.id} />
+                <SectionImage media={media} sectionId={section.id} articleId={articleId} />
               )}
             </div>
           </div>

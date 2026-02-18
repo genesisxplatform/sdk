@@ -32,11 +32,12 @@ interface ChildItemProps {
   sectionId: string;
   isParentVisible?: boolean;
   isInFixedLayer?: boolean;
+  articleId?: string;
 }
 
 const noop = () => null;
 
-export const CompoundChild: FC<ChildItemProps> = ({ item, sectionId, isParentVisible = true, isInFixedLayer = false }) => {
+export const CompoundChild: FC<ChildItemProps> = ({ item, sectionId, isParentVisible = true, isInFixedLayer = false, articleId }) => {
   const id = useId();
   const exemplary = useExemplary();
   const { handleVisibilityChange, allowPointerEvents } = useItemPointerEvents(
@@ -101,6 +102,7 @@ export const CompoundChild: FC<ChildItemProps> = ({ item, sectionId, isParentVis
       >
         <RichTextWrapper isRichText={isRichText} transformOrigin={transformOrigin}>
           <ItemComponent
+            articleId={articleId}
             isInFixedLayer={isInFixedLayer}
             item={item}
             sectionId={sectionId}

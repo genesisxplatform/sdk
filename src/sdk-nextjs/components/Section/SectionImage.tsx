@@ -13,11 +13,12 @@ export type TSectionImage = {
 interface Props {
   media: TSectionImage;
   sectionId: string;
+  articleId: string;
 }
 
-export const SectionImage: FC<Props> = ({ media, sectionId }) => {
+export const SectionImage: FC<Props> = ({ media, sectionId, articleId }) => {
   const { url, size, position, offsetX } = media;
-  const key = getCacheAssetKey(url, sectionId);
+  const key = getCacheAssetKey(url, sectionId, articleId);
   const [container, setContainer] = useState<HTMLDivElement | null>(null);
   const isContainHeight = size === 'contain-height';
   const hasOffsetX = offsetX !== null;

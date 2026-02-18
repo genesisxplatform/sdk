@@ -32,6 +32,7 @@ export interface ItemProps<I extends ItemAny> {
   item: I;
   sectionId: string;
   articleHeight?: number;
+  articleId?: string;
   onResize?: (height: number) => void;
   interactionCtrl?: ReturnType<typeof useItemInteractionCtrl>;
   onVisibilityChange: (isVisible: boolean) => void;
@@ -42,6 +43,7 @@ export interface ItemProps<I extends ItemAny> {
 export interface ItemWrapperProps {
   item: ItemAny;
   sectionId: string;
+  articleId?: string;
   articleHeight?: number;
   isInGroup?: boolean;
   isInFixedLayer?: boolean;
@@ -55,7 +57,7 @@ const stickyFix = `
 
 const noop = () => null;
 
-export const Item: FC<ItemWrapperProps> = ({ item, sectionId, articleHeight, isParentVisible = true, isInGroup = false, isInFixedLayer = false }) => {
+export const Item: FC<ItemWrapperProps> = ({ item, sectionId, articleHeight, isParentVisible = true, isInGroup = false, isInFixedLayer = false, articleId }) => {
   const itemWrapperRef = useRef<HTMLDivElement | null>(null);
   const itemInnerRef = useRef<HTMLDivElement | null>(null);
   const rectObserver = useContext(ArticleRectContext);
@@ -189,6 +191,7 @@ export const Item: FC<ItemWrapperProps> = ({ item, sectionId, articleHeight, isP
             {...triggers}
           >
             <ItemComponent
+              articleId={articleId}
               item={item}
               sectionId={sectionId}
               onResize={handleItemResize}

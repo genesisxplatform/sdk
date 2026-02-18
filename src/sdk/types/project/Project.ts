@@ -18,7 +18,7 @@ export interface Project {
   pages: Page[];
   fonts: Fonts;
   relations: Relation[];
-  scenesAssets: { url: string, id: string }[];
+  scenesAssets: { url: string, id: string, articleId: string }[];
   foreground: TFixedLayer;
   background: TFixedLayer;
 }

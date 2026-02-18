@@ -18,7 +18,7 @@ import { useCacheVideo } from '../../../assets/useCacheVideo';
 import { useCacheImage } from '../../../assets/useCacheImage';
 import { getCacheAssetKey } from '../../../assets/getCacheAssetKey';
 
-export const VideoItem: FC<ItemProps<TVideoItem>> = ({ item, sectionId, onResize, interactionCtrl, onVisibilityChange }) => {
+export const VideoItem: FC<ItemProps<TVideoItem>> = ({ item, sectionId, onResize, interactionCtrl, onVisibilityChange, articleId }) => {
   const id = useId();
   const {
     radius: itemRadius,
@@ -29,8 +29,8 @@ export const VideoItem: FC<ItemProps<TVideoItem>> = ({ item, sectionId, onResize
   } = useFileItem(item, sectionId);
   const { videoCache, imageCache } = useContext(AssetsCacheContext);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
-  const videoCacheKey = getCacheAssetKey(item.params.url, item.id);
-  const coverCacheKey = item.params.coverUrl ? getCacheAssetKey(item.params.coverUrl, item.id) : null;
+  const videoCacheKey = getCacheAssetKey(item.params.url, item.id, articleId ?? '');
+  const coverCacheKey = item.params.coverUrl ? getCacheAssetKey(item.params.coverUrl, item.id, articleId ?? '') : null;
   const isScrollPausedRef = useRef(false);
   const [userPaused, setUserPaused] = useState(false);
   const [isVideoInteracted, setIsVideoInteracted] = useState(false);

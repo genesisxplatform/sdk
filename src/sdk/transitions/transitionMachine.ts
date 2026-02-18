@@ -4,9 +4,9 @@ import { getAvailableTransitions } from './utils/getAvailableTransitions';
 import { findRelation } from './utils/findRelation';
 import type { Direction, InstantTransition, Relation, Transition, TransitionScene } from './utils/types';
 import { isTransitionSuccess } from './utils/isTransitionSuccess';
-import { getScenesOnFadeStart, getScenesOnSlideStart } from './utils/getScenesOnStart';
-import { getScenesOnFadeProgressUpdate, getScenesOnSlideProgressUpdate } from './utils/getScenesOnProgressUpdate';
-import { getScenesOnFadeEnd, getScenesOnSlideEnd } from './utils/getScenesOnEnd';
+import { getScenesOnFadeStart, getScenesOnRevealStart, getScenesOnSlideStart } from './utils/getScenesOnStart';
+import { getScenesOnFadeProgressUpdate, getScenesOnRevealProgressUpdate, getScenesOnSlideProgressUpdate } from './utils/getScenesOnProgressUpdate';
+import { getScenesOnFadeEnd, getScenesOnRevealEnd, getScenesOnSlideEnd } from './utils/getScenesOnEnd';
 import { getScenesOnInstantTransition } from './utils/getScenesOnInstantTransition';
 import { isActiveSwipeTransition } from './utils/isActiveSwipeTransition';
 import { getDeltaAndProgress } from './utils/getDeltaAndProgress';
@@ -76,8 +76,9 @@ setup({
                 duration: event.duration,
                 from,
                 to,
-                ...(transition === 'slide' ? { direction: event.direction } : {}),
-                type: transition
+                ...(transition === 'slide' || transition === 'reveal' ? { direction: event.direction } : {}),
+                ...(transition === 'reveal' ? { offset: event.offset } : {}),
+                type: transition,
               };
             },
             scenes: ({ context, event }) => {
@@ -89,7 +90,9 @@ setup({
               const { to, transition } = event;
               const newScenes = transition === 'slide'
                 ? getScenesOnSlideStart({ from: activeScene.id, to }, { x: 0, y: 0 }, event.direction, previewWindow ?? window)
-                : getScenesOnFadeStart({ from: activeScene.id, to }, 0);
+                : transition === 'reveal'
+                  ? getScenesOnRevealStart({ from: activeScene.id, to }, { x: 0, y: 0 }, event.direction, event.offset ?? 0, previewWindow ?? window)
+                  : getScenesOnFadeStart({ from: activeScene.id, to }, 0);
               return newScenes;
             }
           })
@@ -113,6 +116,7 @@ setup({
                 type: relation.type,
                 from: relation.from,
                 to: relation.to,
+                offset: relation.offset,
                 direction,
                 startX: transition?.startX,
                 startY: transition?.startY,
@@ -132,6 +136,8 @@ setup({
               const { deltaX, deltaY, progress } = getDeltaAndProgress(event.touchData, start, direction, previewWindow ?? window);
               const newScenes = relation.type === 'slide'
                 ? getScenesOnSlideStart(relation, { x: deltaX, y: deltaY }, direction, window)
+                : relation.type === 'reveal'
+                  ? getScenesOnRevealStart(relation, { x: deltaX, y: deltaY }, direction, relation.offset ?? 0, previewWindow ?? window)
                 : getScenesOnFadeStart(relation, progress);
               return newScenes;
             }
@@ -166,7 +172,9 @@ setup({
               const { deltaX, deltaY, progress } = getDeltaAndProgress(event.touchData, start, transition.direction, previewWindow ?? window);
               const newScenes = transition.type === 'slide'
                 ? getScenesOnSlideProgressUpdate(scenes, { x: deltaX, y: deltaY })
-                : getScenesOnFadeProgressUpdate(scenes, transition.to, progress);
+                : transition.type === 'reveal' 
+                  ? getScenesOnRevealProgressUpdate(scenes, { x: deltaX, y: deltaY }, transition.to, transition.offset ?? 0)
+                  : getScenesOnFadeProgressUpdate(scenes, transition.to, progress);
               return newScenes;
             }
           })
@@ -195,7 +203,9 @@ setup({
               const transitionSuccess = isTransitionSuccess(transition, threshold);
               const newScenes = type === 'slide'
                 ? getScenesOnSlideEnd(scenes, transition, transitionSuccess)
-                : getScenesOnFadeEnd(scenes);
+                : type === 'reveal'
+                  ? getScenesOnRevealEnd(scenes, transition, transitionSuccess, transition.offset ?? 0)
+                  : getScenesOnFadeEnd(scenes);
               return newScenes;
             },
           })
@@ -275,6 +285,7 @@ export type TransitionContext = {
 export type TransitionEvents =
   | { type: 'SWIPE_PREPARE'; touchData: { startX: number; startY: number; }; }
   | { type: 'TRANSITION_TRIGGER'; transition: 'slide'; to: string; direction: Direction; duration: number; }
+  | { type: 'TRANSITION_TRIGGER'; transition: 'reveal'; to: string; direction: Direction; duration: number; offset?: number; }
   | { type: 'TRANSITION_TRIGGER'; transition: 'fade'; to: string; duration: number; }
   | { type: 'SWIPE_START'; direction: Direction; touchData: { x: number; y: number; }; }
   | { type: 'SWIPE_CANCEL'; }

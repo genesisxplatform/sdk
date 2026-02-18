@@ -60,17 +60,54 @@ export function getScenesOnSlideStart(
   return [sceneFrom, sceneTo];
 }
 
-
-function getNextSceneSlideStartX(direction: Direction, window: Window) {
-  const axis = getAxis(direction);
-  if (axis !== 'horizontal') return 0;
-  return direction === 'east' ? window.innerWidth : -window.innerWidth;
+export function getScenesOnRevealStart(
+  { from, to }: FromTo,
+  delta: Delta,
+  direction: Direction,
+  offset: number,
+  window: Window
+): TransitionScene[] {
+  const common = {
+    opacity: 1,
+  };
+  const sceneFrom = {
+    id: from,
+    styles: {
+      ...common,
+      startX: 0,
+      zIndex: 2,
+      startY: 0,
+      x: delta.x,
+      y: delta.y
+    }
+  };
+  const startX = getNextSceneSlideStartX(direction, window, offset);
+  const startY = getNextSceneSlideStartY(direction, window, offset);
+  const sceneTo = {
+    id: to,
+    styles: {
+      ...common,
+      zIndex: 1,
+      startX,
+      startY,
+      x: startX + delta.x * offset,
+      y: startY + delta.y * offset,
+    }
+  };
+  return [sceneFrom, sceneTo];
 }
 
-function getNextSceneSlideStartY(direction: Direction, window: Window) {
+
+function getNextSceneSlideStartX(direction: Direction, window: Window, offset: number = 1) {
+  const axis = getAxis(direction);
+  if (axis !== 'horizontal') return 0;
+  return direction === 'east' ? window.innerWidth * offset : -window.innerWidth * offset;
+}
+
+function getNextSceneSlideStartY(direction: Direction, window: Window, offset: number = 1) {
   const axis = getAxis(direction);
   if (axis !== 'vertical') return 0;
-  return direction === 'north' ? -window.innerHeight : window.innerHeight;
+  return direction === 'north' ? -window.innerHeight * offset : window.innerHeight * offset;
 }
 
 type Delta = {

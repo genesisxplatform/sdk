@@ -12,6 +12,22 @@ export function getScenesOnSlideProgressUpdate(scenes: TransitionScene[], delta:
   }));
 }
 
+export function getScenesOnRevealProgressUpdate(scenes: TransitionScene[], delta: Delta, to: string, offset: number) {
+  return scenes.map((scene) => {
+    const isNextScene = scene.id === to;
+    const sceneOffset = isNextScene ? offset : 1;
+    return {
+      ...scene,
+      styles: {
+        ...scene.styles,
+        x: scene.styles.startX + delta.x * sceneOffset,
+        y: scene.styles.startY + delta.y * sceneOffset
+      }
+    };
+  });
+}
+
+
 export function getScenesOnFadeProgressUpdate(scenes: TransitionScene[], to: string, progress: number) {
   return scenes.map((scene) => {
     const isNextScene = scene.id === to;

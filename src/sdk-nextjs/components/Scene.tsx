@@ -11,6 +11,7 @@ interface Props {
     x: number;
     y: number;
     opacity: number;
+    zIndex?: number;
     startX: number;
     startY: number;
   } | undefined;
@@ -128,7 +129,7 @@ export const Scene: FC<PropsWithChildren<Props>> = ({ children, id, styles: scen
         throw new Error('Transition not found');
       }
       const { type } = transition;
-      const propType = type === 'slide' ? 'transform' : 'opacity';
+      const propType = type === 'slide' || type === 'reveal' ? 'transform' : 'opacity';
       if (e.propertyName !== propType) return;
       actorRef.send({
         type: 'SETTLE_END',
@@ -179,7 +180,7 @@ export const Scene: FC<PropsWithChildren<Props>> = ({ children, id, styles: scen
   }, [isSettling, actorRef, interactionsRegistry]);
 
   const isFixed = isControlledTransitioning || isSettling || isInstantTransitioning;
-  const transitionStyle = type === 'slide' ? 'transform' : 'opacity';
+  const transitionStyle = type === 'slide' || type === 'reveal' ? 'transform' : 'opacity';
   return (
     <>
       <div
@@ -189,7 +190,7 @@ export const Scene: FC<PropsWithChildren<Props>> = ({ children, id, styles: scen
           ...layoutDeviationStyle,
           width: '100vw',
           height: '100%',
-          zIndex: 1,
+          zIndex: sceneStyles?.zIndex ?? 1,
           position: isFixed ? 'fixed' : 'absolute',
           transform: sceneStyles && (sceneStyles.x !== 0 || sceneStyles.y !== 0) ? `translate(${sceneStyles.x}px, ${sceneStyles.y}px)` : 'none',
           transition: isSettling || isInstantTransitioning ? `${transitionStyle} ${duration ?? 250}ms ease-out` : 'none',

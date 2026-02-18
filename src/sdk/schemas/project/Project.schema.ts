@@ -68,8 +68,9 @@ export const ProjectSchema = z.object({
   relations: z.array(z.object({
     from: z.string().min(1),
     to: z.string().min(1),
-    type: z.enum(['slide', 'fade']),
-    direction: z.enum(['north', 'east', 'south', 'west'])
+    type: z.enum(['slide', 'fade', 'reveal']),
+    direction: z.enum(['north', 'east', 'south', 'west']),
+    offset: z.number().optional()
   })),
   foreground: FixedLayerSchema,
   background: FixedLayerSchema

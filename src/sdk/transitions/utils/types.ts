@@ -1,7 +1,8 @@
 export type Relation = {
-  type: 'slide' | 'fade';
+  type: 'slide' | 'fade' | 'reveal';
   from: string;
   to: string;
+  offset?: number;
   direction: Direction;
 };
 
@@ -19,7 +20,8 @@ export type ActiveTransition = {
   stage: 'active';
   direction: Direction;
   duration?: number;
-  type: 'slide' | 'fade';
+  type: 'slide' | 'fade' | 'reveal';
+  offset?: number;
   from: string;
   to: string;
   startX: number;
@@ -30,17 +32,19 @@ export type ActiveTransition = {
 
 export type SettlingTransition = {
   stage: 'settling';
-  type: 'slide' | 'fade';
+  type: 'slide' | 'fade' | 'reveal';
   success: boolean;
+  offset?: number;
   from: string;
   to: string;
 };
 
 export type InstantTransition = {
   stage: 'active';
-  type: 'slide' | 'fade';
+  type: 'slide' | 'fade' | 'reveal';
   from: string;
   to: string;
+  offset?: number;
   direction?: Direction;
   duration?: number;
 };
@@ -56,4 +60,5 @@ export type TransitionSceneStyle = {
   x: number;
   y: number;
   opacity: number;
+  zIndex?: number;
 };

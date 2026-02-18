@@ -15,10 +15,11 @@ export const LinkWrapper: React.FC<Props> = ({ link, children }) => {
     if (!actorRef || !link || !('value' in link)) return;
     actorRef.send({
       type: 'TRANSITION_TRIGGER',
-      transition: link.animation as 'slide' | 'fade',
+      transition: link.animation as 'slide' | 'fade' | 'reveal',
       duration: link.duration,
       to: link.value,
-      direction: link.direction
+      direction: link.direction,
+      ...(link.animation === 'reveal' ? { offset: link.offset } : {})
     });
   };
   if (validUrl) {

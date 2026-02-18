@@ -229,6 +229,7 @@ interface ClickLink {
   animation: 'fade' | 'slide' | 'reveal';
   duration: number;
   direction: 'north' | 'west' | 'south' | 'east';
+  offset?: number;
 }
 
 export type VideoItem = Item<ArticleItemType.Video>;

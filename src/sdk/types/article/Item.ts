@@ -224,13 +224,29 @@ interface UrlLink {
   target: string;
 }
 
-interface ClickLink {
-  value: string;
-  animation: 'fade' | 'slide' | 'reveal';
+interface ClickTransitionBase {
+  type: 'scene';
   duration: number;
-  direction: 'north' | 'west' | 'south' | 'east';
-  offset?: number;
+  value: string;
 }
+
+interface SlideLinkTransition extends ClickTransitionBase {
+  animation: 'slide';
+  direction: 'north' | 'west' | 'south' | 'east';
+}
+
+interface FadeLinkTransition extends ClickTransitionBase {
+  animation: 'fade';
+}
+
+interface RevealLinkTransition extends ClickTransitionBase {
+  animation: 'reveal';
+  direction: 'north' | 'west' | 'south' | 'east';
+  offset: number;
+  mode: 'normal' | 'reverse';
+}
+
+export type ClickLink = SlideLinkTransition | FadeLinkTransition | RevealLinkTransition;
 
 export type VideoItem = Item<ArticleItemType.Video>;
 export type RectangleItem = Item<ArticleItemType.Rectangle>;

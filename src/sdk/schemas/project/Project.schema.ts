@@ -68,10 +68,20 @@ export const ProjectSchema = z.object({
   relations: z.array(z.object({
     from: z.string().min(1),
     to: z.string().min(1),
-    type: z.enum(['slide', 'fade', 'reveal']),
     direction: z.enum(['north', 'east', 'south', 'west']),
-    offset: z.number().optional()
-  })),
+  }).and(z.discriminatedUnion('type', [
+    z.object({
+      type: z.literal('slide'),
+    }),
+    z.object({
+      type: z.literal('fade'),
+    }),
+    z.object({
+      type: z.literal('reveal'),
+      offset: z.number(),
+      mode: z.enum(['normal', 'reverse'])
+    })
+  ]))),
   foreground: FixedLayerSchema,
   background: FixedLayerSchema
 });

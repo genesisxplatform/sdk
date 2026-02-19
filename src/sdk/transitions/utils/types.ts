@@ -1,12 +1,26 @@
-export type Relation = {
-  type: 'slide' | 'fade' | 'reveal';
-  from: string;
+export type Direction = 'north' | 'east' | 'south' | 'west';
+
+type SlideRelation = {
   to: string;
-  offset?: number;
+  type: 'slide';
   direction: Direction;
 };
 
-export type Direction = 'north' | 'east' | 'south' | 'west';
+type FadeRelation = {
+  to: string;
+  type: 'fade';
+  direction: Direction;
+};
+
+type RevealRelation = {
+  to: string;
+  type: 'reveal';
+  direction: Direction;
+  offset: number;
+  mode: 'normal' | 'reverse';
+};
+
+export type Relation = SlideRelation | FadeRelation | RevealRelation;
 
 export type Transition = PreparingTransition | ActiveTransition | InstantTransition | SettlingTransition;
 
@@ -16,38 +30,69 @@ export type PreparingTransition = {
   startY: number;
 };
 
-export type ActiveTransition = {
+type ActiveTransitionBase = {
   stage: 'active';
-  direction: Direction;
-  duration?: number;
-  type: 'slide' | 'fade' | 'reveal';
-  offset?: number;
-  from: string;
-  to: string;
   startX: number;
   startY: number;
   currentX: number;
   currentY: number;
+  duration?: number;
+  from: string;
+  to: string;
 };
+
+type ActiveSlideTransition = ActiveTransitionBase & {
+  type: 'slide';
+  direction: Direction;
+};
+
+type ActiveFadeTransition = ActiveTransitionBase & {
+  type: 'fade';
+  direction: Direction;
+};
+
+type ActiveRevealTransition = ActiveTransitionBase & {
+  type: 'reveal';
+  direction: Direction;
+  offset: number;
+  mode: 'normal' | 'reverse';
+};
+
+export type ActiveTransition = ActiveSlideTransition | ActiveFadeTransition | ActiveRevealTransition;
 
 export type SettlingTransition = {
   stage: 'settling';
   type: 'slide' | 'fade' | 'reveal';
   success: boolean;
-  offset?: number;
   from: string;
   to: string;
 };
 
-export type InstantTransition = {
+type InstantTransitionBase = {
   stage: 'active';
-  type: 'slide' | 'fade' | 'reveal';
   from: string;
   to: string;
-  offset?: number;
-  direction?: Direction;
   duration?: number;
 };
+
+type InstantSlideTransition = InstantTransitionBase & {
+  type: 'slide';
+  direction: Direction;
+  offset?: number;
+};
+
+type InstantFadeTransition = InstantTransitionBase & {
+  type: 'fade';
+};
+
+type InstantRevealTransition = InstantTransitionBase & {
+  type: 'reveal';
+  direction: Direction;
+  offset: number;
+  mode: 'normal' | 'reverse';
+};
+
+export type InstantTransition = InstantSlideTransition | InstantFadeTransition | InstantRevealTransition;
 
 export type TransitionScene = {
   id: string;

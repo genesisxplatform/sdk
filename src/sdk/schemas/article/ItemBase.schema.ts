@@ -7,14 +7,31 @@ const UrlLinkSchema = z.object({
   target: z.string().min(1)
 });
 
-const ClickLinkSchema = z.object({
-  value: z.string().min(1),
-  animation: z.enum(['fade', 'slide', 'reveal']),
-  duration: z.number(),
-  direction: z.enum(['north', 'west', 'south', 'east'])
-});
-
-export const Link = z.union([UrlLinkSchema, ClickLinkSchema]);
+export const SceneLinkSchema = z.discriminatedUnion('animation', [
+  z.object({
+    animation: z.literal('fade'),
+    type: z.literal('scene'),
+    duration: z.number(),
+    value: z.string()
+  }),
+  z.object({
+    animation: z.literal('slide'),
+    type: z.literal('scene'),
+    duration: z.number(),
+    value: z.string(),
+    direction: z.enum(['north', 'west', 'south', 'east'])
+  }),
+  z.object({
+    animation: z.literal('reveal'),
+    type: z.literal('scene'),
+    duration: z.number(),
+    value: z.string(),
+    direction: z.enum(['north', 'west', 'south', 'east']),
+    offset: z.number(),
+    mode: z.enum(['normal', 'reverse'])
+  })
+]);
+export const Link = z.union([UrlLinkSchema, SceneLinkSchema]);
 
 export const CompoundSettingsSchema = z.object({
   positionAnchor: z.nativeEnum(AreaAnchor),

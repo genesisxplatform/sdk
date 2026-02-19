@@ -35,7 +35,8 @@ export function getScenesOnRevealEnd(
   scenes: TransitionScene[],
   transition: ActiveTransition,
   success: boolean,
-  offset: number
+  offset: number,
+  mode: 'normal' | 'reverse'
 ) {
   const { from, to, direction } = transition;
   return scenes.map((s) => {

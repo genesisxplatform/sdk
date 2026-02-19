@@ -4,12 +4,14 @@ type SlideRelation = {
   to: string;
   type: 'slide';
   direction: Direction;
+  from: string;
 };
 
 type FadeRelation = {
   to: string;
   type: 'fade';
   direction: Direction;
+  from: string;
 };
 
 type RevealRelation = {
@@ -18,6 +20,7 @@ type RevealRelation = {
   direction: Direction;
   offset: number;
   mode: 'normal' | 'reverse';
+  from: string;
 };
 
 export type Relation = SlideRelation | FadeRelation | RevealRelation;
@@ -72,27 +75,26 @@ type InstantTransitionBase = {
   stage: 'active';
   from: string;
   to: string;
-  duration?: number;
+  duration: number;
 };
 
-type InstantSlideTransition = InstantTransitionBase & {
+export type InstantSlideTransition = {
   type: 'slide';
   direction: Direction;
-  offset?: number;
 };
 
-type InstantFadeTransition = InstantTransitionBase & {
+export type InstantFadeTransition = {
   type: 'fade';
 };
 
-type InstantRevealTransition = InstantTransitionBase & {
+export type InstantRevealTransition = {
   type: 'reveal';
   direction: Direction;
   offset: number;
   mode: 'normal' | 'reverse';
 };
 
-export type InstantTransition = InstantSlideTransition | InstantFadeTransition | InstantRevealTransition;
+export type InstantTransition = InstantTransitionBase & (InstantSlideTransition | InstantFadeTransition | InstantRevealTransition);
 
 export type TransitionScene = {
   id: string;

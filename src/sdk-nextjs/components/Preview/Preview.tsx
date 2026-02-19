@@ -6,6 +6,7 @@ import { getAvailableTransitions } from '../../../sdk/transitions/utils/getAvail
 import JSXStyle from 'styled-jsx/style';
 import { ChevronIcon } from './ChevronIcon';
 import { IframePreviewWindowContext } from './IframePreviewWindowContext';
+import { getTransitionFromRelation } from '../../../sdk/transitions/utils/getTransitionFromRelation';
 
 interface Props {
   relations: Relation[];
@@ -21,13 +22,13 @@ export const Preview: FC<PropsWithChildren<Props>> = ({ children, relations, sta
   const handleSwipeToScene = (direction: 'north' | 'south' | 'east' | 'west') => {
     if (!iframeRef || !iframeRef.contentWindow || !iframeRef.contentDocument) return;
     setIsTransitioning(true);
-    const transition = findRelation(relations, activeScene, direction);
+    const relation = findRelation(relations, activeScene, direction);
     const targetWindow = iframeRef.contentWindow;
+    const transition = getTransitionFromRelation(relation);
     const message = {
       type: "TRANSITION_TRIGGER",
       direction,
-      to: transition.to,
-      transitionType: transition.type,
+      ...transition,
     };
     targetWindow.postMessage(message, "*");
   }

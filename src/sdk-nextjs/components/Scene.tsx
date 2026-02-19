@@ -148,7 +148,9 @@ export const Scene: FC<PropsWithChildren<Props>> = ({ children, id, styles: scen
     const { context } = actorRef.getSnapshot();
     const { transition } = context;
     if (!transition || transition.stage !== 'active') return;
-    const { to, direction } = transition;
+    const { to, type } = transition;
+    if (type === 'fade') return;
+    const { direction } = transition;
     if (direction === 'north' && to === id) {
       scene.scrollTo({ top: scene.scrollHeight });
     }

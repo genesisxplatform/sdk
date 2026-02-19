@@ -5,9 +5,9 @@ export function getScenesOnInstantTransition(
   transition: InstantTransition,
   window: Window
 ): TransitionScene[] {
-  const { type, to, direction } = transition;
-  if ((type === 'slide' || type === 'reveal') && direction) {
-    return getScenesOnInstantSlideTransition(scenes, to, direction, window);
+  const { type, to } = transition;
+  if ((type === 'slide' || type === 'reveal') && transition.direction) {
+    return getScenesOnInstantSlideTransition(scenes, to, transition.direction, window);
   } else if (type === 'fade') {
     return getScenesOnInstantFadeTransition(scenes);
   }

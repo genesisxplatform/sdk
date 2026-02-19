@@ -13,13 +13,14 @@ export const PreviewListener = () => {
     if (!iframePreviewWindow) return;
     const handleMessage = (e: MessageEvent) => {
       if (e.data?.type === "TRANSITION_TRIGGER") {
-        const { direction, to, transitionType } = e.data;
+        const { direction, to, transition, offset, mode } = e.data;
         actorRef.send({
           type: 'TRANSITION_TRIGGER',
-          transition: transitionType,
+          transition,
           duration: 250,
           to,
-          direction
+          ...(transition === 'reveal' || transition === 'slide' ? { direction } : {}),
+          ...(transition === 'reveal' ? { offset, mode } : {}),
         });
       }
     };

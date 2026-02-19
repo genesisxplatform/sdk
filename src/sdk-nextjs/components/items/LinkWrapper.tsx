@@ -1,6 +1,7 @@
 import React, { ReactElement, ReactNode } from 'react';
 import { Link } from '../../../sdk/types/article/Item';
 import { TransitionMachineContext } from '../../provider/TransitionMachineContext';
+import { getTransitionFromLink } from '../../../sdk/transitions/utils/getTransitionFromLink';
 
 interface Props {
   children: ReactElement | ReactNode[];
@@ -13,13 +14,10 @@ export const LinkWrapper: React.FC<Props> = ({ link, children }) => {
   const targetParams = link && 'target' in link && link.target === '_blank' ? { target: link.target, rel: 'noreferrer' } : {};
   const handleGoToScene = () => {
     if (!actorRef || !link || !('value' in link)) return;
+    const transition = getTransitionFromLink(link);
     actorRef.send({
       type: 'TRANSITION_TRIGGER',
-      transition: link.animation as 'slide' | 'fade' | 'reveal',
-      duration: link.duration,
-      to: link.value,
-      direction: link.direction,
-      ...(link.animation === 'reveal' ? { offset: link.offset } : {})
+      ...transition,
     });
   };
   if (validUrl) {

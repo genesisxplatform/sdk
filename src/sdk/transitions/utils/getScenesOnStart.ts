@@ -65,6 +65,7 @@ export function getScenesOnRevealStart(
   delta: Delta,
   direction: Direction,
   offset: number,
+  mode: 'normal' | 'reverse',
   window: Window
 ): TransitionScene[] {
   const common = {

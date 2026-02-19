@@ -1,7 +1,7 @@
 import React, { ReactElement, ReactNode } from 'react';
 import { CntrlColor } from '@cntrl-site/color';
 import { TextTransform, VerticalAlign, RichTextStyle, RichTextEntity } from '../../../sdk/types/article/RichText';
-import { RichTextItem } from '../../../sdk/types/article/Item';
+import { ClickLink, RichTextItem } from '../../../sdk/types/article/Item';
 import { LinkWrapper } from '../../components/items/LinkWrapper';
 import { getFontFamilyValue } from '../getFontFamilyValue';
 
@@ -17,6 +17,8 @@ interface EntitiesGroup {
   target?: string;
   animation?: 'fade' | 'slide' | 'reveal';
   direction?: 'north' | 'west' | 'south' | 'east';
+  offset?: number;
+  mode?: 'normal' | 'reverse';
   duration?: number;
   stylesGroup: StyleGroup[];
   start: number;
@@ -106,7 +108,21 @@ export class RichTextConverter {
             continue;
           }
           if (entity.value) {
-            kids.push(<LinkWrapper key={entity.start} link={{ value: entity.value, animation: entity.animation ?? 'fade', direction: entity.direction ?? 'north', duration: 0 }}>{entityKids}</LinkWrapper>);
+            kids.push(
+              <LinkWrapper
+                key={entity.start}
+                link={{
+                  type: 'scene',
+                  value: entity.value,
+                  animation: entity.animation ?? 'fade',
+                  direction: entity.direction ?? 'north',
+                  duration: entity.duration ?? 200,
+                  ...(entity.animation === 'reveal' ? { offset: entity.offset ?? 0, mode: entity.mode ?? 'normal' } : {})
+                } as ClickLink}
+              >
+                  {entityKids}
+              </LinkWrapper>
+            );
             continue;
           }
           kids.push(...entityKids);

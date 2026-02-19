@@ -10,6 +10,8 @@ import { getScenesOnFadeEnd, getScenesOnRevealEnd, getScenesOnSlideEnd } from '.
 import { getScenesOnInstantTransition } from './utils/getScenesOnInstantTransition';
 import { isActiveSwipeTransition } from './utils/isActiveSwipeTransition';
 import { getDeltaAndProgress } from './utils/getDeltaAndProgress';
+import { getInstantTransitionParams } from './utils/getInstantTransitionParams';
+import { getTransitionParamsFromRelation } from './utils/getTransitionParams';
 
 const SWIPE_SLIDE_SUCCESS_THRESHOLD = 130;
 const SWIPE_FADE_SUCCESS_THRESHOLD = 20;
@@ -71,14 +73,13 @@ setup({
                 throw new Error('Active scene not found');
               }
               const from = activeScene.id;
+              const params = getInstantTransitionParams(transition, event);
               return {
                 stage: 'active',
                 duration: event.duration,
                 from,
                 to,
-                ...(transition === 'slide' || transition === 'reveal' ? { direction: event.direction } : {}),
-                ...(transition === 'reveal' ? { offset: event.offset } : {}),
-                type: transition,
+                ...params
               };
             },
             scenes: ({ context, event }) => {
@@ -91,7 +92,7 @@ setup({
               const newScenes = transition === 'slide'
                 ? getScenesOnSlideStart({ from: activeScene.id, to }, { x: 0, y: 0 }, event.direction, previewWindow ?? window)
                 : transition === 'reveal'
-                  ? getScenesOnRevealStart({ from: activeScene.id, to }, { x: 0, y: 0 }, event.direction, event.offset ?? 0, previewWindow ?? window)
+                  ? getScenesOnRevealStart({ from: activeScene.id, to }, { x: 0, y: 0 }, event.direction, event.offset, event.mode, previewWindow ?? window)
                   : getScenesOnFadeStart({ from: activeScene.id, to }, 0);
               return newScenes;
             }
@@ -111,17 +112,15 @@ setup({
               if (!activeScene) return null;
               const relation = findRelation(input.relations, activeScene.id, direction);
               if (!transition || !('startX' in transition) || !('startY' in transition)) return null;
+              const params = getTransitionParamsFromRelation(relation);
               return {
                 stage: 'active',
-                type: relation.type,
-                from: relation.from,
-                to: relation.to,
-                offset: relation.offset,
                 direction,
                 startX: transition?.startX,
                 startY: transition?.startY,
                 currentX: event.touchData.x,
                 currentY: event.touchData.y,
+                ...params
               };
             },
             scenes: ({ context, event }) => {
@@ -137,7 +136,7 @@ setup({
               const newScenes = relation.type === 'slide'
                 ? getScenesOnSlideStart(relation, { x: deltaX, y: deltaY }, direction, window)
                 : relation.type === 'reveal'
-                  ? getScenesOnRevealStart(relation, { x: deltaX, y: deltaY }, direction, relation.offset ?? 0, previewWindow ?? window)
+                  ? getScenesOnRevealStart(relation, { x: deltaX, y: deltaY }, direction, relation.offset, relation.mode, previewWindow ?? window)
                 : getScenesOnFadeStart(relation, progress);
               return newScenes;
             }
@@ -173,7 +172,7 @@ setup({
               const newScenes = transition.type === 'slide'
                 ? getScenesOnSlideProgressUpdate(scenes, { x: deltaX, y: deltaY })
                 : transition.type === 'reveal' 
-                  ? getScenesOnRevealProgressUpdate(scenes, { x: deltaX, y: deltaY }, transition.to, transition.offset ?? 0)
+                  ? getScenesOnRevealProgressUpdate(scenes, { x: deltaX, y: deltaY }, transition.to, transition.offset, transition.mode)
                   : getScenesOnFadeProgressUpdate(scenes, transition.to, progress);
               return newScenes;
             }
@@ -204,7 +203,7 @@ setup({
               const newScenes = type === 'slide'
                 ? getScenesOnSlideEnd(scenes, transition, transitionSuccess)
                 : type === 'reveal'
-                  ? getScenesOnRevealEnd(scenes, transition, transitionSuccess, transition.offset ?? 0)
+                  ? getScenesOnRevealEnd(scenes, transition, transitionSuccess, transition.offset, transition.mode)
                   : getScenesOnFadeEnd(scenes);
               return newScenes;
             },
@@ -285,7 +284,7 @@ export type TransitionContext = {
 export type TransitionEvents =
   | { type: 'SWIPE_PREPARE'; touchData: { startX: number; startY: number; }; }
   | { type: 'TRANSITION_TRIGGER'; transition: 'slide'; to: string; direction: Direction; duration: number; }
-  | { type: 'TRANSITION_TRIGGER'; transition: 'reveal'; to: string; direction: Direction; duration: number; offset?: number; }
+  | { type: 'TRANSITION_TRIGGER'; transition: 'reveal'; to: string; direction: Direction; duration: number; offset: number; mode: 'normal' | 'reverse'; }
   | { type: 'TRANSITION_TRIGGER'; transition: 'fade'; to: string; duration: number; }
   | { type: 'SWIPE_START'; direction: Direction; touchData: { x: number; y: number; }; }
   | { type: 'SWIPE_CANCEL'; }

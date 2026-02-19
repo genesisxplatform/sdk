@@ -10,6 +10,7 @@ export type SlideRelation = {
 export type FadeRelation = {
   to: ArticleId;
   type: 'fade';
+  direction: 'north' | 'east' | 'south' | 'west';
   from: ArticleId;
 };
 

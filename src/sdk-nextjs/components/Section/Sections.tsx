@@ -33,6 +33,7 @@ export const Sections: FC<Props> = ({ article, container }) => {
         const data = {};
         return (
           <Section
+            articleId={article.id}
             section={section}
             key={section.id}
             data={data}
@@ -41,6 +42,7 @@ export const Sections: FC<Props> = ({ article, container }) => {
               <Item
                 item={item}
                 key={item.id}
+                articleId={article.id}
                 sectionId={section.id}
                 articleHeight={articleHeight}
               />

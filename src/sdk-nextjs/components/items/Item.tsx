@@ -32,6 +32,7 @@ export interface ItemProps<I extends ItemAny> {
   item: I;
   sectionId: string;
   articleHeight?: number;
+  articleId?: string;
   onResize?: (height: number) => void;
   interactionCtrl?: ReturnType<typeof useItemInteractionCtrl>;
   onVisibilityChange: (isVisible: boolean) => void;
@@ -42,6 +43,7 @@ export interface ItemProps<I extends ItemAny> {
 export interface ItemWrapperProps {
   item: ItemAny;
   sectionId: string;
+  articleId?: string;
   articleHeight?: number;
   isInGroup?: boolean;
   isInFixedLayer?: boolean;
@@ -55,7 +57,7 @@ const stickyFix = `
 
 const noop = () => null;
 
-export const Item: FC<ItemWrapperProps> = ({ item, sectionId, articleHeight, isParentVisible = true, isInGroup = false, isInFixedLayer = false }) => {
+export const Item: FC<ItemWrapperProps> = ({ item, sectionId, articleHeight, isParentVisible = true, isInGroup = false, isInFixedLayer = false, articleId }) => {
   const itemWrapperRef = useRef<HTMLDivElement | null>(null);
   const itemInnerRef = useRef<HTMLDivElement | null>(null);
   const rectObserver = useContext(ArticleRectContext);
@@ -121,8 +123,6 @@ export const Item: FC<ItemWrapperProps> = ({ item, sectionId, articleHeight, isP
 
   const isRichText = isItemType(item, ArticleItemType.RichText);
   const anchorSide = item.area.anchorSide ?? AnchorSide.Top;
-  const positionType = item.area.positionType ?? PositionType.ScreenBased;
-  const isScreenBasedBottom = positionType === PositionType.ScreenBased && anchorSide === AnchorSide.Bottom;
   const scale = innerStateProps?.styles?.scale ?? itemScale;
   const hasClickTriggers = interactionCtrl?.getHasTrigger(item.id, 'click') ?? false;
   const scroll = rectObserver?.scroll;
@@ -139,9 +139,8 @@ export const Item: FC<ItemWrapperProps> = ({ item, sectionId, articleHeight, isP
         interactionCtrl?.handleTransitionEnd?.(e.propertyName);
       }}
       style={{
-        top: isScreenBasedBottom ? 'unset' : getItemTopStyle(realTop, anchorSide),
+        top: getItemTopStyle(realTop, anchorSide),
         left: `${left * 100}vw`,
-        bottom: isScreenBasedBottom ? `${-realTop * 100}vw` : 'unset',
         ...(wrapperHeight !== undefined ? { height: `${wrapperHeight * 100}vw` } : {}),
         transition: wrapperStateProps?.transition ?? 'none'
       }}
@@ -189,6 +188,7 @@ export const Item: FC<ItemWrapperProps> = ({ item, sectionId, articleHeight, isP
             {...triggers}
           >
             <ItemComponent
+              articleId={articleId}
               item={item}
               sectionId={sectionId}
               onResize={handleItemResize}
@@ -223,8 +223,7 @@ export const Item: FC<ItemWrapperProps> = ({ item, sectionId, articleHeight, isP
               z-index: ${item.area.zIndex};
               ${!isInGroup && stickyFix}
               pointer-events: none;
-              bottom: ${isScreenBasedBottom ? `${-item.area.top * 100}vw` : 'unset'};
-              top: ${isScreenBasedBottom ? 'unset' : getItemTopStyle(item.area.top, item.area.anchorSide)};
+              top: ${getItemTopStyle(item.area.top, item.area.anchorSide)};
               left: ${item.area.left * 100}vw;
             }
       `}

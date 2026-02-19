@@ -16,7 +16,7 @@ import { AssetsCacheContext } from '../../../assets/AssetsCacheProvider';
 import { useCacheImage } from '../../../assets/useCacheImage';
 import { getCacheAssetKey } from '../../../assets/getCacheAssetKey';
 
-export const ImageItem: FC<ItemProps<TImageItem>> = ({ item, sectionId, onResize, interactionCtrl, onVisibilityChange }) => {
+export const ImageItem: FC<ItemProps<TImageItem>> = ({ item, sectionId, onResize, interactionCtrl, onVisibilityChange, articleId }) => {
   const id = useId();
   const {
     radius: itemRadius,
@@ -30,7 +30,7 @@ export const ImageItem: FC<ItemProps<TImageItem>> = ({ item, sectionId, onResize
   const [wrapperRef, setWrapperRef] = useState<HTMLDivElement | null>(null);
   useRegisterResize(wrapperRef, onResize);
   const { url, hasGLEffect } = item.params;
-  const cacheKey = getCacheAssetKey(url, item.id);
+  const cacheKey = getCacheAssetKey(url, item.id, articleId ?? '');
   const fxCanvas = useRef<HTMLCanvasElement | null>(null);
   const isInitialRef = useRef(true);
 

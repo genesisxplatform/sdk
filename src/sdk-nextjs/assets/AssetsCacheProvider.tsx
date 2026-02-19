@@ -4,7 +4,7 @@ import { getCacheAssetKey } from './getCacheAssetKey';
 export const AssetsCacheContext = createContext<{ videoCache: Map<string, HTMLVideoElement>, imageCache: Map<string, HTMLImageElement> }>({ videoCache: new Map(), imageCache: new Map() });
 
 interface Props {
-  assets: { url: string, id: string }[];
+  assets: { url: string, id: string, articleId: string }[];
 }
 
 export const AssetsCacheProvider: FC<PropsWithChildren<Props>> = ({ children, assets }) => {
@@ -12,15 +12,15 @@ export const AssetsCacheProvider: FC<PropsWithChildren<Props>> = ({ children, as
   const [imageCache, setImageCache] = useState<Map<string, HTMLImageElement>>(new Map());
 
   useEffect(() => {
-    assets.forEach(({ url, id }) => {
+    assets.forEach(({ url, id, articleId }) => {
       if (isVideoAsset(url)) {
         const video = getVideo(url);
-        setVideoCache(prev => prev.set(getCacheAssetKey(url, id), video));
+        setVideoCache(prev => prev.set(getCacheAssetKey(url, id, articleId), video));
       } 
       if (isImageAsset(url)) {
         const img = new Image();
         img.src = url;
-        setImageCache(prev => prev.set(getCacheAssetKey(url, id), img));
+        setImageCache(prev => prev.set(getCacheAssetKey(url, id, articleId), img));
       }
     });
   }, [assets]);

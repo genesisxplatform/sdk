@@ -18,16 +18,17 @@ interface Props {
   container: HTMLDivElement;
   sectionId: string;
   media: TSectionVideo;
+  articleId: string;
 }
 
-export const SectionVideo: FC<Props> = ({ container, sectionId, media }) => {
+export const SectionVideo: FC<Props> = ({ container, sectionId, media, articleId }) => {
   const [video, setVideo] = useState<HTMLVideoElement | null>(null);
   const [videoWrapper, setVideoWrapper] = useState<HTMLDivElement | null>(null);
   const [coverImageWrapper, setCoverImageWrapper] = useState<HTMLDivElement | null>(null);
   const [isVideoWidthOverflow, setIsVideoWidthOverflow] = useState(false);
   const { url, size, position, offsetX, coverUrl, play } = media;
-  const key = getCacheAssetKey(url, sectionId);
-  const coverKey = coverUrl ? getCacheAssetKey(coverUrl, sectionId) : null;
+  const key = getCacheAssetKey(url, sectionId, articleId);
+  const coverKey = coverUrl ? getCacheAssetKey(coverUrl, sectionId, articleId) : null;
   const [isPlaying, setIsPlaying] = useState(false);
   const [userPaused, setUserPaused] = useState(false);
   const [isClickedOnCover, setIsClickedOnCover] = useState(false);

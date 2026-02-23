@@ -14,8 +14,7 @@ export function getScenesOnSlideProgressUpdate(scenes: TransitionScene[], delta:
 
 export function getScenesOnRevealProgressUpdate(scenes: TransitionScene[], delta: Delta, to: string, offset: number, mode: 'normal' | 'reverse') {
   return scenes.map((scene) => {
-    const isNextScene = scene.id === to;
-    const sceneOffset = isNextScene ? offset : 1;
+    const sceneOffset = (scene.id === to) === (mode === 'normal') ? offset : 1;
     return {
       ...scene,
       styles: {

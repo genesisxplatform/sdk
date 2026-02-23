@@ -1,7 +1,7 @@
 import React, { ReactElement, ReactNode } from 'react';
 import { CntrlColor } from '@cntrl-site/color';
 import { TextTransform, VerticalAlign, RichTextStyle, RichTextEntity } from '../../../sdk/types/article/RichText';
-import { ClickLink, RichTextItem } from '../../../sdk/types/article/Item';
+import { ClickLink, Link, RichTextItem } from '../../../sdk/types/article/Item';
 import { LinkWrapper } from '../../components/items/LinkWrapper';
 import { getFontFamilyValue } from '../getFontFamilyValue';
 
@@ -218,8 +218,7 @@ export class RichTextConverter {
           stylesGroup: [],
           start,
           end,
-          ...(entity && (entity.data?.type === 'url' || entity.data?.type === 'anchor') && { link: entity.data.url, target: entity.data.target ?? '_self' }),
-          ...(entity && entity.data?.type === 'scene' && { value: entity.data.value, animation: entity.data.animation ?? 'fade', direction: entity.data.direction ?? 'north', duration: entity.data.duration ?? 0 })
+          ...this.getLinkFromEntity(entity)
         });
       }
       return entitiesGroups;
@@ -246,16 +245,37 @@ export class RichTextConverter {
       const start = entityDividers[i];
       const end = entityDividers[i + 1];
       const entity = entities.find(e => e.start === start);
+      const link = this.getLinkFromEntity(entity);
         entitiesGroups.push({
           stylesGroup: styleGroups.filter(s => s.start >= start && s.end <= end),
           start,
           end,
-          ...(entity && entity.data?.url && { link: entity.data.url, target: entity.data.target ?? '_self' }),
-          ...(entity && entity.data?.value && { value: entity.data.value, animation: entity.data.animation ?? 'fade', direction: entity.data.direction ?? 'north', duration: entity.data.duration ?? 0 })
+          ...link
         });
     }
 
     return entitiesGroups;
+  }
+
+  private getLinkFromEntity(entity: RichTextEntity | undefined): Link | undefined {
+    if (!entity) return;
+    const { data } = entity;
+    if (!data) return;
+    if (data.type === 'url' || data.type === 'anchor') {
+      return { url: data.url, target: data.target ?? '_self' };
+    }
+    if (data.type === 'scene') {
+      if (data.animation === 'fade') {
+        return { type: 'scene', value: data.value, animation: 'fade', duration: data.duration ?? 0 };
+      }
+      if (data.animation === 'slide') {
+        return { type: 'scene', value: data.value, animation: 'slide', direction: data.direction ?? 'north', duration: data.duration ?? 0 };
+      }
+      if (data.animation === 'reveal') {
+        return { type: 'scene', value: data.value, animation: 'reveal', direction: data.direction ?? 'north', offset: data.offset ?? 0, mode: data.mode ?? 'normal', duration: data.duration ?? 0 };
+      }
+    }
+    return;
   }
 
   private static fromRangeStylesToInline(draftStyle: Style, exemplary: number): string {

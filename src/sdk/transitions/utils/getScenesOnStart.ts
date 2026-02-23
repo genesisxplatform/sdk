@@ -71,28 +71,30 @@ export function getScenesOnRevealStart(
   const common = {
     opacity: 1,
   };
+  const fromSceneOffset = mode === 'normal' ? 1 : offset;
   const sceneFrom = {
     id: from,
     styles: {
       ...common,
       startX: 0,
-      zIndex: 2,
+      zIndex: mode === 'normal' ? 2 : 1,
       startY: 0,
-      x: delta.x,
-      y: delta.y
+      x: delta.x * fromSceneOffset,
+      y: delta.y * fromSceneOffset,
     }
   };
-  const startX = getNextSceneSlideStartX(direction, window, offset);
-  const startY = getNextSceneSlideStartY(direction, window, offset);
+  const toSceneOffset = mode === 'normal' ? offset : 1;
+  const startX = getNextSceneSlideStartX(direction, window, toSceneOffset);
+  const startY = getNextSceneSlideStartY(direction, window, toSceneOffset);
   const sceneTo = {
     id: to,
     styles: {
       ...common,
-      zIndex: 1,
+      zIndex: mode === 'normal' ? 1 : 2,
       startX,
       startY,
-      x: startX + delta.x * offset,
-      y: startY + delta.y * offset,
+      x: startX + delta.x * toSceneOffset,
+      y: startY + delta.y * toSceneOffset,
     }
   };
   return [sceneFrom, sceneTo];

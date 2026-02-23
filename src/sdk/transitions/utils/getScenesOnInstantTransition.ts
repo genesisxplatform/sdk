@@ -6,13 +6,49 @@ export function getScenesOnInstantTransition(
   window: Window
 ): TransitionScene[] {
   const { type, to } = transition;
-  if ((type === 'slide' || type === 'reveal') && transition.direction) {
+  if (type === 'slide' && transition.direction) {
     return getScenesOnInstantSlideTransition(scenes, to, transition.direction, window);
+  } else if (type === 'reveal' && transition.direction) {
+    return getScenesOnInstantRevealTransition(scenes, to, transition.direction, transition.offset, transition.mode, window);
   } else if (type === 'fade') {
     return getScenesOnInstantFadeTransition(scenes);
   }
   
   return scenes;
+}
+
+function getScenesOnInstantRevealTransition(
+  scenes: TransitionScene[],
+  to: string,
+  direction: Direction,
+  offset: number,
+  mode: 'normal' | 'reverse',
+  window: Window
+): TransitionScene[] {
+  let fromFinalX = 0;
+  let fromFinalY = 0;
+  
+  if (direction === 'east') {
+    fromFinalX = -window.innerWidth * (mode === 'normal' ? 1 : offset);
+  } else if (direction === 'west') {
+    fromFinalX = window.innerWidth * (mode === 'normal' ? 1 : offset);
+  } else if (direction === 'north') {
+    fromFinalY = window.innerHeight * (mode === 'normal' ? 1 : offset);
+  } else if (direction === 'south') {
+    fromFinalY = -window.innerHeight * (mode === 'normal' ? 1 : offset);
+  }
+  
+  return scenes.map((scene) => {
+    const isToScene = scene.id === to;
+    return {
+      ...scene,
+      styles: {
+        ...scene.styles,
+        x: isToScene ? 0 : fromFinalX,
+        y: isToScene ? 0 : fromFinalY,
+      }
+    };
+  });
 }
 
 function getScenesOnInstantSlideTransition(

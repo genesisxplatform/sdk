@@ -63,7 +63,7 @@ export const FixedLayer: FC<Props> = ({ layer, type }) => {
             width: 100%;
             height: 100%;
             overflow: clip;
-            ${type === 'foreground' ? 'z-index: 2;' : 'z-index: 0;'}
+            ${type === 'foreground' ? 'z-index: 3;' : 'z-index: 0;'}
           }
         `}</JSXStyle>
         </WebglContextManagerContext.Provider>

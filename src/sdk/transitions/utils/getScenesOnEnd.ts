@@ -3,7 +3,8 @@ import type { ActiveTransition, TransitionScene } from './types';
 export function getScenesOnSlideEnd(
   scenes: TransitionScene[],
   transition: ActiveTransition,
-  success: boolean
+  success: boolean,
+  window: Window
 ) {
   const { from, to, direction } = transition;
   return scenes.map((s) => {
@@ -36,7 +37,8 @@ export function getScenesOnRevealEnd(
   transition: ActiveTransition,
   success: boolean,
   offset: number,
-  mode: 'normal' | 'reverse'
+  mode: 'normal' | 'reverse',
+  window: Window
 ) {
   const { from, to, direction } = transition;
   return scenes.map((s) => {
@@ -53,7 +55,7 @@ export function getScenesOnRevealEnd(
     } else if (direction === 'south') {
       prevElY = success ? -window.innerHeight * (mode === 'normal' ? 1 : offset) : window.innerHeight * (mode === 'normal' ? offset : 1);
     }
-    const zIndex = mode === 'reverse' ? (isNextActiveScene ? 1 : 0) : (isNextActiveScene ? 0 : 1);
+    const zIndex = mode === 'reverse' ? (isNextActiveScene ? 1 : 0) : (isNextActiveScene ? 1 : 2);
     return {
       ...s,
       styles: {

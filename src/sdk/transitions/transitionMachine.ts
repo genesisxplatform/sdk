@@ -134,7 +134,7 @@ setup({
               const start = { x: transition.startX, y: transition.startY };
               const { deltaX, deltaY, progress } = getDeltaAndProgress(event.touchData, start, direction, previewWindow ?? window);
               const newScenes = relation.type === 'slide'
-                ? getScenesOnSlideStart(relation, { x: deltaX, y: deltaY }, direction, window)
+                ? getScenesOnSlideStart(relation, { x: deltaX, y: deltaY }, direction, previewWindow ?? window)
                 : relation.type === 'reveal'
                   ? getScenesOnRevealStart(relation, { x: deltaX, y: deltaY }, direction, relation.offset, relation.mode, previewWindow ?? window)
                 : getScenesOnFadeStart(relation, progress);
@@ -195,15 +195,15 @@ setup({
               };
             },
             scenes: ({ context }) => {
-              const { transition, scenes } = context;
+              const { transition, scenes, input: { previewWindow } } = context;
               if (!isActiveSwipeTransition(transition)) return scenes;
               const { type } = transition;
               const threshold = transition.type === 'slide' ? SWIPE_SLIDE_SUCCESS_THRESHOLD : SWIPE_FADE_SUCCESS_THRESHOLD;
               const transitionSuccess = isTransitionSuccess(transition, threshold);
               const newScenes = type === 'slide'
-                ? getScenesOnSlideEnd(scenes, transition, transitionSuccess)
+                ? getScenesOnSlideEnd(scenes, transition, transitionSuccess, previewWindow ?? window)
                 : type === 'reveal'
-                  ? getScenesOnRevealEnd(scenes, transition, transitionSuccess, transition.offset, transition.mode)
+                  ? getScenesOnRevealEnd(scenes, transition, transitionSuccess, transition.offset, transition.mode, previewWindow ?? window)
                   : getScenesOnFadeEnd(scenes);
               return newScenes;
             },

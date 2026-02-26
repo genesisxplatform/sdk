@@ -53,11 +53,12 @@ export function getScenesOnRevealEnd(
     } else if (direction === 'south') {
       prevElY = success ? -window.innerHeight * (mode === 'normal' ? 1 : offset) : window.innerHeight * (mode === 'normal' ? offset : 1);
     }
+    const zIndex = mode === 'reverse' ? (isNextActiveScene ? 1 : 0) : (isNextActiveScene ? 0 : 1);
     return {
       ...s,
       styles: {
         ...s.styles,
-        zIndex: isNextActiveScene ? 1 : 0,
+        zIndex,
         x: isNextActiveScene ? 0 : prevElX!,
         y: isNextActiveScene ? 0 : prevElY!
       }

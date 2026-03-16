@@ -181,7 +181,6 @@ const CodeEmbedItemSchema =  ItemBaseSchema.extend({
     html: z.string(),
     scale: z.boolean(),
     iframe: z.boolean(),
-    areaAnchor:  z.nativeEnum(AreaAnchor),
     opacity: z.number().nonnegative(),
     blur: z.number(),
     isDraggable: z.boolean().optional(),

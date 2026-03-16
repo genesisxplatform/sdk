@@ -36,7 +36,7 @@ export const RectangleItem: FC<ItemProps<TRectangleItem>> = ({ item, sectionId, 
   const angle = getStyleFromItemStateAndParams(styles?.angle, itemAngle);
   const blur = getStyleFromItemStateAndParams(styles?.blur, itemBlur);
   const backdropFilterValue = backdropBlur ? `blur(${backdropBlur * 100}vw)` : undefined;
-  const isInteractive = areFillsVisible(stateFillLayers ?? itemFill ?? []) || (strokeWidth !== 0 && areFillsVisible(strokeFill ?? itemStrokeFill ?? []));
+  const isInteractive = areFillsVisible(stateFillLayers ?? itemFill ?? []) || (strokeWidth !== 0 && areFillsVisible(strokeFill ? [strokeFill] : itemStrokeFill ?? []));
   useEffect(() => {
     onVisibilityChange?.(isInteractive);
   }, [isInteractive, onVisibilityChange]);

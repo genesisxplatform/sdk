@@ -115,7 +115,6 @@ interface CodeEmbedParams extends ParamsBase {
   html: string;
   scale: boolean;
   iframe: boolean;
-  areaAnchor: AreaAnchor;
   opacity: number;
   blur: number;
   isDraggable?: boolean;

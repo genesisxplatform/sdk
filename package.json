@@ -1,6 +1,6 @@
 {
   "name": "@gxpl/sdk",
-  "version": "0.0.58",
+  "version": "0.0.59",
   "description": "Generic SDK for use in public websites.",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",

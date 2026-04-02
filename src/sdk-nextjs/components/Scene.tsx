@@ -220,16 +220,17 @@ function getDirectionFromDelta(deltaX: number, deltaY: number): Direction {
 }
 
 function canTransition(direction: Direction, el: HTMLElement) {
+  const boundary = el.getBoundingClientRect();
   switch (direction) {
     case 'north':
       return el.scrollTop <= 0;
     case 'south': {
-      const isAllowed = el.scrollTop + el.clientHeight + 1 >= el.scrollHeight;
+      const isAllowed = el.scrollTop + boundary.height + 1 >= el.scrollHeight;
       return isAllowed;
     }
     case 'west':
       return el.scrollLeft === 0;
     case 'east':
-      return el.scrollLeft + el.clientWidth === window.innerWidth;
+      return Math.abs(el.scrollLeft + boundary.width - window.innerWidth) < 1;
   }
 }

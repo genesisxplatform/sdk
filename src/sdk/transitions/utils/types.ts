@@ -72,6 +72,7 @@ export type SettlingTransition = {
 };
 
 type InstantTransitionBase = {
+  sceneSectionId?: string;
   stage: 'active';
   from: string;
   to: string;

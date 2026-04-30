@@ -6,7 +6,8 @@ export function getTransitionFromLink(link: ClickLink) {
     return {
       transition: link.animation,
       to: link.value,
-      duration: link.duration
+      duration: link.duration,
+      ...(link.sceneSectionId ? { sceneSectionId: link.sceneSectionId } : {}),
     };
   }
   if (link.animation === 'reveal') {
@@ -16,7 +17,8 @@ export function getTransitionFromLink(link: ClickLink) {
       offset: link.offset,
       mode: link.mode,
       direction: link.direction,
-      duration: link.duration
+      duration: link.duration,
+      ...(link.sceneSectionId ? { sceneSectionId: link.sceneSectionId } : {}),
     };
   }
   if (link.animation === 'slide') {
@@ -24,7 +26,8 @@ export function getTransitionFromLink(link: ClickLink) {
       transition: link.animation,
       to: link.value,
       direction: link.direction,
-      duration: link.duration
+      duration: link.duration,
+      ...(link.sceneSectionId ? { sceneSectionId: link.sceneSectionId } : {}),
     };
   }
 

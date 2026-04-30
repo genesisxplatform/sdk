@@ -12,14 +12,16 @@ export const SceneLinkSchema = z.discriminatedUnion('animation', [
     animation: z.literal('fade'),
     type: z.literal('scene'),
     duration: z.number(),
-    value: z.string()
+    value: z.string(),
+    sceneSectionId: z.string().optional()
   }),
   z.object({
     animation: z.literal('slide'),
     type: z.literal('scene'),
     duration: z.number(),
     value: z.string(),
-    direction: z.enum(['north', 'west', 'south', 'east'])
+    direction: z.enum(['north', 'west', 'south', 'east']),
+    sceneSectionId: z.string().optional()
   }),
   z.object({
     animation: z.literal('reveal'),
@@ -28,7 +30,8 @@ export const SceneLinkSchema = z.discriminatedUnion('animation', [
     value: z.string(),
     direction: z.enum(['north', 'west', 'south', 'east']),
     offset: z.number(),
-    mode: z.enum(['normal', 'reverse'])
+    mode: z.enum(['normal', 'reverse']),
+    sceneSectionId: z.string().optional()
   })
 ]);
 export const Link = z.union([UrlLinkSchema, SceneLinkSchema]);

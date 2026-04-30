@@ -1,8 +1,8 @@
 import { Direction } from './types';
 
-type Event = { transition: 'slide'; to: string; direction: Direction; duration: number; }
-| { transition: 'reveal'; to: string; direction: Direction; duration: number; offset: number; mode: 'normal' | 'reverse'; }
-| { transition: 'fade'; to: string; duration: number; }
+type Event = { transition: 'slide'; to: string; direction: Direction; duration: number; sceneSectionId?: string; }
+| { transition: 'reveal'; to: string; direction: Direction; duration: number; offset: number; mode: 'normal' | 'reverse'; sceneSectionId?: string; }
+| { transition: 'fade'; to: string; duration: number; sceneSectionId?: string; }
 
 type Transition = 'slide' | 'reveal' | 'fade';
 
@@ -17,7 +17,7 @@ export function getInstantTransitionParams(
   if (transition === 'slide' && isTransitionEvent(event, transition)) {
     return {
       direction: event.direction ?? 'north',
-      type: transition
+      type: transition,
     };
   }
   if (transition === 'reveal' && isTransitionEvent(event, transition)) {
@@ -25,12 +25,14 @@ export function getInstantTransitionParams(
       offset: event.offset,
       mode: event.mode,
       direction: event.direction,
-      type: transition
+      type: transition,
+      ...(event.sceneSectionId ? { sceneSectionId: event.sceneSectionId } : {}),
     };
   }
   if (transition === 'fade' && isTransitionEvent(event, transition)) {
     return {
-      type: transition
+      type: transition,
+      ...(event.sceneSectionId ? { sceneSectionId: event.sceneSectionId } : {}),
     };
   }
   throw new Error(`Unknown transition type`);

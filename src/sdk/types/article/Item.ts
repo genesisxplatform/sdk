@@ -227,6 +227,7 @@ interface ClickTransitionBase {
   type: 'scene';
   duration: number;
   value: string;
+  sceneSectionId?: string;
 }
 
 interface SlideLinkTransition extends ClickTransitionBase {

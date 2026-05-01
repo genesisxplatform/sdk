@@ -18,6 +18,7 @@ interface EntitiesGroup {
   animation?: 'fade' | 'slide' | 'reveal';
   direction?: 'north' | 'west' | 'south' | 'east';
   offset?: number;
+  sceneSectionId?: string;
   mode?: 'normal' | 'reverse';
   duration?: number;
   stylesGroup: StyleGroup[];
@@ -117,6 +118,7 @@ export class RichTextConverter {
                   animation: entity.animation ?? 'fade',
                   direction: entity.direction ?? 'north',
                   duration: entity.duration ?? 200,
+                  ...(entity.sceneSectionId ? { sceneSectionId: entity.sceneSectionId } : {}),
                   ...(entity.animation === 'reveal' ? { offset: entity.offset ?? 0, mode: entity.mode ?? 'normal' } : {})
                 } as ClickLink}
               >
@@ -266,13 +268,13 @@ export class RichTextConverter {
     }
     if (data.type === 'scene') {
       if (data.animation === 'fade') {
-        return { type: 'scene', value: data.value, animation: 'fade', duration: data.duration ?? 0 };
+        return { type: 'scene', value: data.value, animation: 'fade', duration: data.duration ?? 0, sceneSectionId: data.sceneSectionId };
       }
       if (data.animation === 'slide') {
-        return { type: 'scene', value: data.value, animation: 'slide', direction: data.direction ?? 'north', duration: data.duration ?? 0 };
+        return { type: 'scene', value: data.value, animation: 'slide', direction: data.direction ?? 'north', duration: data.duration ?? 0, sceneSectionId: data.sceneSectionId };
       }
       if (data.animation === 'reveal') {
-        return { type: 'scene', value: data.value, animation: 'reveal', direction: data.direction ?? 'north', offset: data.offset ?? 0, mode: data.mode ?? 'normal', duration: data.duration ?? 0 };
+        return { type: 'scene', value: data.value, animation: 'reveal', direction: data.direction ?? 'north', offset: data.offset ?? 0, mode: data.mode ?? 'normal', duration: data.duration ?? 0, sceneSectionId: data.sceneSectionId };
       }
     }
     return;

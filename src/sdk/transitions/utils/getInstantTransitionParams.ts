@@ -18,6 +18,7 @@ export function getInstantTransitionParams(
     return {
       direction: event.direction ?? 'north',
       type: transition,
+      ...(event.sceneSectionId ? { sceneSectionId: event.sceneSectionId } : {}),
     };
   }
   if (transition === 'reveal' && isTransitionEvent(event, transition)) {

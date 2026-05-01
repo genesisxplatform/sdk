@@ -34,6 +34,7 @@ export type PreparingTransition = {
 };
 
 type ActiveTransitionBase = {
+  sceneSectionId?: string;
   stage: 'active';
   startX: number;
   startY: number;

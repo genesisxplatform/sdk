@@ -149,10 +149,17 @@ export const Scene: FC<PropsWithChildren<Props>> = ({ children, id, styles: scen
     const { transition } = context;
     if (!transition || transition.stage !== 'active') return;
     const { to, type } = transition;
-    if (type === 'fade') return;
-    const { direction } = transition;
-    if (direction === 'north' && to === id) {
+    if (type !== 'fade' && transition.direction === 'north' && to === id && !transition.sceneSectionId) {
       scene.scrollTo({ top: scene.scrollHeight });
+    }
+    if (transition.sceneSectionId && to === id) {
+      const section = scene.querySelector<HTMLElement>(`#${transition.sceneSectionId}`);
+      if (section) {
+        const sectionRect = section.getBoundingClientRect();
+        const sceneRect = scene.getBoundingClientRect();
+        const top = sectionRect.top - sceneRect.top;
+        scene.scrollTo({ top });
+      }
     }
   }, [isTransitioning, actorRef, id]);
 

@@ -12,8 +12,9 @@ interface StyleGroup {
 }
 
 interface EntitiesGroup {
-  link?: string;
+  url?: string;
   value?: string;
+  type?: 'url' | 'anchor' | 'scene';
   target?: string;
   animation?: 'fade' | 'slide' | 'reveal';
   direction?: 'north' | 'west' | 'south' | 'east';
@@ -104,8 +105,8 @@ export class RichTextConverter {
             entityKids.push(sliceSymbols(content, offset, entity.end));
             offset = entity.end;
           }
-          if (entity.link) {
-            kids.push(<LinkWrapper key={entity.start} link={{ url: entity.link, target: entity.target ?? '_self' }}>{entityKids}</LinkWrapper>);
+          if (entity.type === 'url' || entity.type === 'anchor') {
+            kids.push(<LinkWrapper key={entity.start} link={{ url: entity.url ?? '', target: entity.target ?? '_self' }}>{entityKids}</LinkWrapper>);
             continue;
           }
           if (entity.value) {

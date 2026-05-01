@@ -106,7 +106,7 @@ export class RichTextConverter {
             offset = entity.end;
           }
           if (entity.type === 'url' || entity.type === 'anchor') {
-            kids.push(<LinkWrapper key={entity.start} link={{ url: entity.url ?? '', target: entity.target ?? '_self' }}>{entityKids}</LinkWrapper>);
+            kids.push(<LinkWrapper key={entity.start} link={{ url: entity.url ?? '', target: entity.target ?? '_self', type: entity.type ?? 'url' }}>{entityKids}</LinkWrapper>);
             continue;
           }
           if (entity.value) {

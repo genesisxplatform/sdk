@@ -3,6 +3,7 @@ import { ItemAreaSchema } from './ItemArea.schema';
 import { AreaAnchor, DimensionMode } from '../../types/article/ItemArea';
 
 const UrlLinkSchema = z.object({
+  type: z.enum(['url', 'anchor']).optional(),
   url: z.string().min(1),
   target: z.string().min(1)
 });

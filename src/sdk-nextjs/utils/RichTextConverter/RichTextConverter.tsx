@@ -264,7 +264,7 @@ export class RichTextConverter {
     const { data } = entity;
     if (!data) return;
     if (data.type === 'url' || data.type === 'anchor') {
-      return { url: data.url, target: data.target ?? '_self' };
+      return { type: data.type ?? 'url', url: data.url, target: data.target ?? '_self' };
     }
     if (data.type === 'scene') {
       if (data.animation === 'fade') {

@@ -10,10 +10,10 @@ interface Props {
 
 export const LinkWrapper: React.FC<Props> = ({ link, children }) => {
   const actorRef = TransitionMachineContext.useActorRef();
-  const validUrl = link && 'url' in link ? buildValidUrl(link.url) : '';
+  const validUrl = link && 'type' in link && link.type === 'url' && 'url' in link ? buildValidUrl(link.url) : '';
   const targetParams = link && 'target' in link && link.target === '_blank' ? { target: link.target, rel: 'noreferrer' } : {};
   const handleGoToScene = () => {
-    if (!actorRef || !link || !('value' in link)) return;
+    if (!actorRef || !link || link.type !== 'scene') return;
     const transition = getTransitionFromLink(link);
     actorRef.send({
       type: 'TRANSITION_TRIGGER',
@@ -30,7 +30,7 @@ export const LinkWrapper: React.FC<Props> = ({ link, children }) => {
       </a>
     );
   }
-  if (link && 'value' in link) {
+  if (link && link.type === 'scene') {
     return (
       <a
         onClick={handleGoToScene}

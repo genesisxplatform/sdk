@@ -219,6 +219,7 @@ export interface StickyParams {
 export type Link = UrlLink | ClickLink;
 
 interface UrlLink {
+  type?: 'url' | 'anchor';
   url: string;
   target: string;
 }

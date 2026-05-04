@@ -153,13 +153,16 @@ export const Scene: FC<PropsWithChildren<Props>> = ({ children, id, styles: scen
       scene.scrollTo({ top: scene.scrollHeight });
     }
     if (transition.sceneSectionId && to === id) {
-      const section = scene.querySelector<HTMLElement>(`#${transition.sceneSectionId}`);
-      if (section) {
+      const sectionId = transition.sceneSectionId;
+      const performScroll = () => {
+        const section = scene.querySelector<HTMLElement>(`#${sectionId}`);
+        if (!section) return;
         const sectionRect = section.getBoundingClientRect();
         const sceneRect = scene.getBoundingClientRect();
-        const top = sectionRect.top - sceneRect.top;
+        const top = sectionRect.top - sceneRect.top + scene.scrollTop;
         scene.scrollTo({ top });
-      }
+      };
+      requestAnimationFrame(() => requestAnimationFrame(performScroll));
     }
   }, [isTransitioning, actorRef, id]);
 

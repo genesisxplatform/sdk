@@ -18,7 +18,7 @@ export const Sections: FC<Props> = ({ article, container }) => {
     const rect = container.getBoundingClientRect();
     setArticleHeight(container.scrollHeight / rect.width);
     return articleRectObserver.init(container);
-  }, [articleRectObserver || !container]);
+  }, [articleRectObserver, container]);
 
   useEffect(() => {
     if (!articleRectObserver || !container) return;

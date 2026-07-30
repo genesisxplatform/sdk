@@ -43,7 +43,7 @@ export class Client {
   private async fetchProject(buildMode: 'default' | 'self-hosted' = 'default'): Promise<Project> {
     const { username: projectId, password: apiKey, origin } = this.url;
     const url = new URL(`/projects/${projectId}?buildMode=${buildMode}`, origin);
-    const response = await this.fetchWithRetry(url.href, apiKey);
+    const response = await this.request(url.href, apiKey);
     if (!response.ok) {
       throw new Error(`Failed to fetch project with id #${projectId}: ${response.statusText}`);
     }
@@ -55,7 +55,7 @@ export class Client {
   private async fetchArticle(articleId: string, buildMode: 'default' | 'self-hosted' = 'default'): Promise<ArticleData> {
     const { username: projectId, password: apiKey, origin } = this.url;
     const url = new URL(`/projects/${projectId}/articles/${articleId}?buildMode=${buildMode}`, origin);
-    const response = await this.fetchWithRetry(url.href, apiKey);
+    const response = await this.request(url.href, apiKey);
     if (!response.ok) {
       throw new Error(`Failed to fetch article with id #${articleId}: ${response.statusText}`);
     }
@@ -65,7 +65,7 @@ export class Client {
     return { article, keyframes };
   }
 
-  private async fetchWithRetry(url: string, apiKey: string, attempts = 3): Promise<FetchImplResponse> {
+  private request(url: string, apiKey: string): Promise<FetchImplResponse> {
     // Disabling gzip avoids node-fetch's "Premature close at Gunzip" error,
     // which occurs when the upstream socket is closed slightly before the
     // compressed body is fully read (seen during self-hosted exports). The
@@ -77,18 +77,7 @@ export class Client {
         'Accept-Encoding': 'identity'
       }
     };
-    let lastError: unknown;
-    for (let attempt = 1; attempt <= attempts; attempt++) {
-      try {
-        return await this.fetchImpl(url, init);
-      } catch (e) {
-        lastError = e;
-        if (attempt < attempts) {
-          await new Promise(resolve => setTimeout(resolve, 200 * attempt));
-        }
-      }
-    }
-    throw lastError;
+    return this.fetchImpl(url, init);
   }
 }
 

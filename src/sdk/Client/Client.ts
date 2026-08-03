@@ -43,11 +43,7 @@ export class Client {
   private async fetchProject(buildMode: 'default' | 'self-hosted' = 'default'): Promise<Project> {
     const { username: projectId, password: apiKey, origin } = this.url;
     const url = new URL(`/projects/${projectId}?buildMode=${buildMode}`, origin);
-    const response = await this.fetchImpl(url.href, {
-      headers: {
-        Authorization: `Bearer ${apiKey}`
-      }
-    });
+    const response = await this.request(url.href, apiKey);
     if (!response.ok) {
       throw new Error(`Failed to fetch project with id #${projectId}: ${response.statusText}`);
     }
@@ -59,11 +55,7 @@ export class Client {
   private async fetchArticle(articleId: string, buildMode: 'default' | 'self-hosted' = 'default'): Promise<ArticleData> {
     const { username: projectId, password: apiKey, origin } = this.url;
     const url = new URL(`/projects/${projectId}/articles/${articleId}?buildMode=${buildMode}`, origin);
-    const response = await this.fetchImpl(url.href, {
-      headers: {
-        Authorization: `Bearer ${apiKey}`
-      }
-    });
+    const response = await this.request(url.href, apiKey);
     if (!response.ok) {
       throw new Error(`Failed to fetch article with id #${articleId}: ${response.statusText}`);
     }
@@ -71,6 +63,21 @@ export class Client {
     const article = ArticleSchema.parse(data.article);
     const keyframes = KeyframesSchema.parse(data.keyframes);
     return { article, keyframes };
+  }
+
+  private request(url: string, apiKey: string): Promise<FetchImplResponse> {
+    // Disabling gzip avoids node-fetch's "Premature close at Gunzip" error,
+    // which occurs when the upstream socket is closed slightly before the
+    // compressed body is fully read (seen during self-hosted exports). The
+    // `compress` flag is node-fetch specific and ignored by browser fetch.
+    const init: RequestInit & { compress?: boolean } = {
+      compress: false,
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Accept-Encoding': 'identity'
+      }
+    };
+    return this.fetchImpl(url, init);
   }
 }
 

@@ -42,6 +42,10 @@ export class ArticleRectObserver extends EventEmitter<EventMap> {
     return this.articleWidth;
   }
 
+  get initialized(): boolean {
+    return this.isInitialized;
+  }
+
   private setScroll(scroll: number) {
     this.scrollPos = scroll;
   }

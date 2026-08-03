@@ -3,6 +3,7 @@ import { useLayoutDeviation } from '../common/useLayoutDeviation';
 import { TransitionMachineContext } from '../provider/TransitionMachineContext';
 import { Direction } from '../../sdk/transitions/utils/types';
 import { useInteractionsRegistry } from '../provider/InteractionsContext';
+import { useComponentPortalContent } from '../common/useComponentPortalContent';
 
 interface Props {
   id: string;
@@ -20,6 +21,8 @@ interface Props {
 export const Scene: FC<PropsWithChildren<Props>> = ({ children, id, styles: sceneStyles, elRef }) => {
   const { layoutDeviation } = useLayoutDeviation();
   const interactionsRegistry = useInteractionsRegistry();
+  const portalRef = useRef<HTMLDivElement>(null);
+  const hasPortalContent = useComponentPortalContent(portalRef);
   const layoutDeviationStyle = { '--layout-deviation': layoutDeviation } as CSSProperties;
   const actorRef = TransitionMachineContext.useActorRef();
   const { isControlledTransitioning, isSettling, isInstantTransitioning } = TransitionMachineContext.useSelector((state) => {
@@ -45,6 +48,7 @@ export const Scene: FC<PropsWithChildren<Props>> = ({ children, id, styles: scen
   const isTransitioning = isControlledTransitioning || isInstantTransitioning;
 
   const handleTouchStart = useCallback((e: TouchEvent) => {
+    if (hasPortalContent) return;
     const { context } = actorRef.getSnapshot();
     const { transitionReady } = context;
 
@@ -57,9 +61,10 @@ export const Scene: FC<PropsWithChildren<Props>> = ({ children, id, styles: scen
         startY: touch.clientY,
       }
     });
-  }, [actorRef]);
+  }, [actorRef, hasPortalContent]);
 
   const handleTouchMove = useCallback((e: TouchEvent) => {
+    if (hasPortalContent) return;
     const touch = e.touches[0];
     const { context } = actorRef.getSnapshot();
     const { transition, transitionReady } = context;
@@ -91,7 +96,7 @@ export const Scene: FC<PropsWithChildren<Props>> = ({ children, id, styles: scen
         }
       });
     }
-  }, [actorRef]);
+  }, [actorRef, hasPortalContent]);
 
   const handleTouchEnd = useCallback(() => {
     const { context } = actorRef.getSnapshot();
@@ -206,7 +211,7 @@ export const Scene: FC<PropsWithChildren<Props>> = ({ children, id, styles: scen
           position: isFixed ? 'fixed' : 'absolute',
           transform: sceneStyles && (sceneStyles.x !== 0 || sceneStyles.y !== 0) ? `translate(${sceneStyles.x}px, ${sceneStyles.y}px)` : 'none',
           transition: isSettling || isInstantTransitioning ? `${transitionStyle} ${duration ?? 250}ms ease-out` : 'none',
-          overflowY: isFixed ? 'hidden' : 'scroll',
+          overflowY: isFixed || hasPortalContent ? 'hidden' : 'scroll',
           overflowX: 'clip',
           opacity: sceneStyles?.opacity ?? 1,
           'WebkitOverflowScrolling': 'touch' // prevent glitch on Safari (fast scroll to top/bottom sides)
@@ -214,6 +219,7 @@ export const Scene: FC<PropsWithChildren<Props>> = ({ children, id, styles: scen
       >
         {children}
       </div>
+      <div id="component-portal" ref={portalRef} />
     </>
   );
 };

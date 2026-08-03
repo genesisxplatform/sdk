@@ -9,11 +9,14 @@ import { components, Component as TComponent } from '@cntrl-site/components';
 interface SdkContextInitProps {
   project: Project;
   articles: Article[];
+  publicApiBase?: string;
 }
 
 export class CntrlSdkContext {
   private _exemplary: number = 0;
   private _fonts?: Project['fonts'] = undefined;
+  private _projectId?: string = undefined;
+  private _publicApiBase?: string = undefined;
   private sectionHeightMap: Map<string, SectionHeight> = new Map();
   private components: Map<string, TComponent> = new Map();
 
@@ -36,7 +39,11 @@ export class CntrlSdkContext {
     );
   }
 
-  init({ project, articles }: SdkContextInitProps) {
+  init({ project, articles, publicApiBase }: SdkContextInitProps) {
+    this._projectId = project.id;
+    if (publicApiBase) {
+      this._publicApiBase = publicApiBase;
+    }
     this.setComponents(components);
     this.setExemplary(project.exemplary);
     this.setFonts(project.fonts);
@@ -57,6 +64,11 @@ export class CntrlSdkContext {
 
   private setFonts(fonts: Project['fonts']) {
     this._fonts = fonts;
+  }
+
+  getSubmitUrl(pluginConfigId: string | undefined): string | undefined {
+    if (!this._publicApiBase || !this._projectId || !pluginConfigId) return undefined;
+    return `${this._publicApiBase}/projects/${this._projectId}/forms/${pluginConfigId}/submit`;
   }
 
   setSectionsHeight(sections: Section[]) {

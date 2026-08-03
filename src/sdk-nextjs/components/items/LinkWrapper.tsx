@@ -1,4 +1,4 @@
-import React, { ReactElement, ReactNode } from 'react';
+import React, { CSSProperties, ReactElement, ReactNode } from 'react';
 import { Link } from '../../../sdk/types/article/Item';
 import { TransitionMachineContext } from '../../provider/TransitionMachineContext';
 import { getTransitionFromLink } from '../../../sdk/transitions/utils/getTransitionFromLink';
@@ -6,9 +6,10 @@ import { getTransitionFromLink } from '../../../sdk/transitions/utils/getTransit
 interface Props {
   children: ReactElement | ReactNode[];
   link?: Link;
+  style?: CSSProperties;
 }
 
-export const LinkWrapper: React.FC<Props> = ({ link, children }) => {
+export const LinkWrapper: React.FC<Props> = ({ link, children, style }) => {
   const actorRef = TransitionMachineContext.useActorRef();
   const validUrl = link && 'type' in link && (link.type === 'url' || link.type === 'anchor') && 'url' in link ? buildValidUrl(link.url) : '';
   const targetParams = link && 'target' in link && link.target === '_blank' ? { target: link.target, rel: 'noreferrer' } : {};
@@ -24,6 +25,7 @@ export const LinkWrapper: React.FC<Props> = ({ link, children }) => {
     return (
       <a
         href={validUrl}
+        style={style}
         {...targetParams}
       >
         {children}
@@ -34,6 +36,7 @@ export const LinkWrapper: React.FC<Props> = ({ link, children }) => {
     return (
       <a
         onClick={handleGoToScene}
+        style={style}
         role="button"
       >
         {children}

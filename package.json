@@ -36,7 +36,7 @@
   "dependencies": {
     "@antfu/eslint-config": "^3.16.0",
     "@cntrl-site/color": "^1.0.0",
-    "@cntrl-site/components": "^0.0.2",
+    "@cntrl-site/components": "^1.0.51",
     "@cntrl-site/effects": "^1.4.0",
     "@testing-library/jest-dom": "^6.4.8",
     "@testing-library/react": "^16.0.0",

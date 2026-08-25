@@ -73,8 +73,12 @@ export const Scene: FC<PropsWithChildren<Props>> = ({ children, id, styles: scen
     const deltaX = touch.clientX - transition.startX;
     const deltaY = touch.clientY - transition.startY;
     const direction = getDirectionFromDelta(deltaX, deltaY);
-    const isTransitionAllowed = canTransition(direction, el);
-    if ((!transitionReady[direction] && transition.stage === 'preparing') || !isTransitionAllowed) {
+    // Scroll boundaries only gate the *start* of a swipe. Once the transition is active the scene
+    // carries a transform, which makes it the containing block of its `position: fixed` descendants:
+    // they join its scrollable overflow and inflate `scrollHeight`, so re-measuring here would
+    // cancel the gesture mid-swipe. The scene is `overflow: hidden` while transitioning anyway, and
+    // the direction is already locked in by the machine.
+    if (transition.stage === 'preparing' && (!transitionReady[direction] || !canTransition(direction, el))) {
       actorRef.send({ type: 'SWIPE_CANCEL' });
       return;
     }
@@ -240,10 +244,10 @@ function canTransition(direction: Direction, el: HTMLElement) {
   switch (direction) {
     case 'north':
       return el.scrollTop <= 0;
-    case 'south': {
-      const isAllowed = el.scrollTop + boundary.height + 1 >= el.scrollHeight;
-      return isAllowed;
-    }
+    case 'south':
+      // `clientHeight` rather than the bounding rect: it shares the coordinate space of
+      // `scrollTop`/`scrollHeight`, so a scaled ancestor cannot skew the comparison.
+      return el.scrollTop + el.clientHeight + 1 >= el.scrollHeight;
     case 'west':
       return el.scrollLeft === 0;
     case 'east':

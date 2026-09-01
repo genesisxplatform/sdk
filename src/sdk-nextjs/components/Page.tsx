@@ -10,6 +10,7 @@ import { FixedLayer } from './fixedLayers/FixedLayer';
 import { PreviewWrapper } from './Preview/PreviewWrapper';
 import { PreviewListener } from './Preview/PreviewListener';
 import { AssetsCacheProvider } from '../assets/AssetsCacheProvider';
+import { AutoTransitionListener } from './AutoTransition/AutoTransitionListener';
 import { InOutTransitionProvider } from '../provider/InOutTransitionContext';
 import { TransitionMachineContextProvider } from '../provider/TransitionMachineContextProvider';
 
@@ -36,6 +37,7 @@ export const Page: FC<PageProps> = ({ project, articlesData }) => {
             <InOutTransitionProvider>
               <PreviewListener />
               <AssetsCacheProvider assets={scenesAssets}>
+                <AutoTransitionListener relations={relations} articlesData={articlesData} />
                 {project.foreground && !project.foreground.hidden && <FixedLayer layer={project.foreground} type="foreground" />}
                 <Scenes articlesData={articlesData} />
                 {project.background && !project.background.hidden && <FixedLayer layer={project.background} type="background" />}

@@ -1,6 +1,6 @@
 {
   "name": "@gxpl/sdk",
-  "version": "0.0.71",
+  "version": "0.1.1",
   "description": "Generic SDK for use in public websites.",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -8,6 +8,7 @@
     "test": "jest",
     "prebuild": "rimraf ./lib",
     "build": "tsc --project tsconfig.build.json",
+    "build:watch": "tsc --watch --preserveWatchOutput --project tsconfig.build.json",
     "prepublishOnly": "cross-env NODE_ENV=production npm run build"
   },
   "bin": {

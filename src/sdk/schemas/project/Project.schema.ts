@@ -70,6 +70,17 @@ export const ProjectSchema = z.object({
     from: z.string().min(1),
     to: z.string().min(1),
     direction: z.enum(['north', 'east', 'south', 'west']),
+    trigger: z.discriminatedUnion('type', [
+      z.object({
+        type: z.literal('auto'),
+        delay: z.number()
+      }),
+      z.object({
+        type: z.literal('video-end'),
+        videoType: z.enum(['item', 'section']),
+        videoId: z.string()
+      })
+    ]).optional(),
   }).and(z.discriminatedUnion('type', [
     z.object({
       type: z.literal('slide'),

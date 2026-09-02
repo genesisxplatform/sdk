@@ -1,3 +1,5 @@
+import { RelationTrigger } from '../../types/project/Relation';
+
 export type Direction = 'north' | 'east' | 'south' | 'west';
 
 type SlideRelation = {
@@ -5,6 +7,7 @@ type SlideRelation = {
   type: 'slide';
   direction: Direction;
   from: string;
+  trigger?: RelationTrigger;
 };
 
 type FadeRelation = {
@@ -12,6 +15,7 @@ type FadeRelation = {
   type: 'fade';
   direction: Direction;
   from: string;
+  trigger?: RelationTrigger;
 };
 
 type RevealRelation = {
@@ -21,6 +25,7 @@ type RevealRelation = {
   offset: number;
   mode: 'normal' | 'reverse';
   from: string;
+  trigger?: RelationTrigger;
 };
 
 export type Relation = SlideRelation | FadeRelation | RevealRelation;

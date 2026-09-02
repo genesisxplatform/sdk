@@ -4,13 +4,12 @@ import { AssetsCacheContext } from '../../assets/AssetsCacheProvider';
 import { getCacheAssetKey } from '../../assets/getCacheAssetKey';
 import { Relation } from '../../../sdk/types/project/Relation';
 import { Article } from '../../../sdk/types/article/Article';
-import { ArticleItemType } from '../../../sdk/types/article/ArticleItemType';
 
 const TRANSITION_DURATION_MS = 250;
-const POST_VIDEO_END_DELAY_MS = 2500;
+const POST_VIDEO_END_DELAY_MS = 1000;
 const VIDEO_LOOKUP_TIMEOUT_MS = 1000;
 const FIRE_RETRY_MS = 100;
-const NATIVE_INTERACTIVE_SELECTOR = 'a, button, [role="button"], input, select, textarea, iframe';
+const TOUCH_MOVE_CANCEL_THRESHOLD_PX = 10;
 const GRACE_CANCEL_EVENTS: Array<keyof WindowEventMap> = ['pointerdown', 'touchstart', 'wheel', 'keydown'];
 
 interface Props {
@@ -41,7 +40,6 @@ export const AutoTransitionListener: FC<Props> = ({ relations, articlesData }) =
     // change starts a new visit, so a stray tap neither cancels nor restarts a countdown.
     if (visitRef.current?.sceneId === sceneId) return;
     visitRef.current?.disarm();
-
     let disarmed = false;
     const teardowns: Array<() => void> = [];
     const disarm = () => {
@@ -56,7 +54,6 @@ export const AutoTransitionListener: FC<Props> = ({ relations, articlesData }) =
     const trigger = relation?.trigger;
     const article = articlesData[sceneId]?.article;
     if (!relation || !trigger || !article) return;
-
     const fire = () => {
       if (disarmed) return;
       const snapshot = actorRef.getSnapshot();
@@ -102,31 +99,46 @@ export const AutoTransitionListener: FC<Props> = ({ relations, articlesData }) =
 
     const triggerSectionId = trigger.type === 'video-end' && trigger.videoType === 'section' ? trigger.videoId : null;
 
-    // Intentional interactions only: links/CTAs, other interactive items, other videos.
-    // Taps on empty space or plain content never cancel; the trigger video's own wrapper
-    // (cover included) is exempt so starting it doesn't kill its own trigger.
-    const armClickCancellation = () => {
-      const interactiveItemIds = getInteractiveItemIds(article);
+    // Any interaction cancels: click anywhere, scrolling (wheel / touch drag), keys. The one
+    // exemption is a click inside the trigger video's own wrapper (cover included), so
+    // tapping the cover to start the video keeps its trigger armed. Touch drags use a small
+    // movement threshold so the finger jitter of a sloppy cover tap doesn't cancel, and the
+    // machine's own programmatic scrollTo fires none of these events.
+    const armInteractionCancellation = () => {
       const handleClick = (event: MouseEvent) => {
         const target = event.target;
-        if (!(target instanceof Element)) return;
-        if (triggerSectionId && target.closest(`.section-video-wrapper-${triggerSectionId}`)) return;
-        if (target.closest(NATIVE_INTERACTIVE_SELECTOR)) {
-          disarm();
-          return;
-        }
-        if (target.closest('[class*="section-video-wrapper-"]')) {
-          disarm();
-          return;
-        }
-        const itemWrapper = target.closest('[class*="item-wrapper-"]');
-        const itemId = itemWrapper ? getItemIdFromWrapper(itemWrapper) : null;
-        if (itemId !== null && interactiveItemIds.has(itemId)) {
+        if (
+          target instanceof Element
+          && triggerSectionId
+          && target.closest(`.section-video-wrapper-${triggerSectionId}`)
+        ) return;
+        disarm();
+      };
+      let touchStart: { x: number; y: number } | null = null;
+      const handleTouchStart = (event: TouchEvent) => {
+        const touch = event.touches[0];
+        touchStart = touch ? { x: touch.clientX, y: touch.clientY } : null;
+      };
+      const handleTouchMove = (event: TouchEvent) => {
+        const touch = event.touches[0];
+        if (!touchStart || !touch) return;
+        if (Math.hypot(touch.clientX - touchStart.x, touch.clientY - touchStart.y) > TOUCH_MOVE_CANCEL_THRESHOLD_PX) {
           disarm();
         }
       };
+      const cancel = () => disarm();
       window.addEventListener('click', handleClick, { capture: true });
-      teardowns.push(() => window.removeEventListener('click', handleClick, { capture: true }));
+      window.addEventListener('touchstart', handleTouchStart, { capture: true, passive: true });
+      window.addEventListener('touchmove', handleTouchMove, { capture: true, passive: true });
+      window.addEventListener('wheel', cancel, { capture: true, passive: true });
+      window.addEventListener('keydown', cancel, { capture: true, passive: true });
+      teardowns.push(() => {
+        window.removeEventListener('click', handleClick, { capture: true });
+        window.removeEventListener('touchstart', handleTouchStart, { capture: true });
+        window.removeEventListener('touchmove', handleTouchMove, { capture: true });
+        window.removeEventListener('wheel', cancel, { capture: true });
+        window.removeEventListener('keydown', cancel, { capture: true });
+      });
     };
 
     // Once the video has completed, hold for a short grace window where any interaction
@@ -142,9 +154,20 @@ export const AutoTransitionListener: FC<Props> = ({ relations, articlesData }) =
     const watchVideo = (video: HTMLVideoElement) => {
       let lastTime = video.currentTime;
       let completed = false;
+      const detachVideoListeners = () => {
+        video.removeEventListener('timeupdate', handleTimeUpdate);
+        video.removeEventListener('ended', handleEnded);
+        video.removeEventListener('pause', handlePause);
+        video.removeEventListener('seeking', handleSeeking);
+      };
       const complete = () => {
         if (completed || disarmed) return;
         completed = true;
+        // The video has done its job — drop its listeners before grace starts. Around a
+        // loop restart iOS Safari emits seeking/pause with orderings desktop never does,
+        // and any of them arriving mid-grace would clear the grace timer. Real user
+        // interaction during grace is caught by the blanket listeners startGrace attaches.
+        detachVideoListeners();
         startGrace();
       };
       // Videos are unconditionally looped, so `ended` never fires for them: completion is
@@ -160,8 +183,11 @@ export const AutoTransitionListener: FC<Props> = ({ relations, articlesData }) =
       const handleEnded = () => complete();
       const handlePause = () => disarm();
       const handleSeeking = () => {
-        // A loop restart is reported as a seek to 0 — only user scrubbing cancels.
-        if (!isLoopWrap(video.currentTime, lastTime, video.duration) || video.paused) {
+        // A loop restart is reported as a seek to ~0 while playing. Don't require lastTime
+        // to still sit near the duration (Chrome's ordering): on iOS this event can arrive
+        // after the wrapped timeupdate already reset it. Only a seek that cannot be a loop
+        // wrap — while paused, or landing past the first second — counts as scrubbing.
+        if (video.paused || video.currentTime >= 1) {
           disarm();
         }
       };
@@ -169,16 +195,11 @@ export const AutoTransitionListener: FC<Props> = ({ relations, articlesData }) =
       video.addEventListener('ended', handleEnded);
       video.addEventListener('pause', handlePause);
       video.addEventListener('seeking', handleSeeking);
-      teardowns.push(() => {
-        video.removeEventListener('timeupdate', handleTimeUpdate);
-        video.removeEventListener('ended', handleEnded);
-        video.removeEventListener('pause', handlePause);
-        video.removeEventListener('seeking', handleSeeking);
-      });
+      teardowns.push(detachVideoListeners);
     };
 
     if (trigger.type === 'auto') {
-      armClickCancellation();
+      armInteractionCancellation();
       const timer = window.setTimeout(fire, trigger.delay * 1000);
       teardowns.push(() => window.clearTimeout(timer));
     } else if (triggerSectionId !== null) {
@@ -186,7 +207,7 @@ export const AutoTransitionListener: FC<Props> = ({ relations, articlesData }) =
       const media = section?.media;
       // Section (or its video) deleted → ignore the trigger entirely.
       if (media?.type !== 'video') return;
-      armClickCancellation();
+      armInteractionCancellation();
       const key = getCacheAssetKey(media.url, triggerSectionId, sceneId);
       const lookupStartedAt = performance.now();
       let lookupRafId: number | null = null;
@@ -227,29 +248,3 @@ function isLoopWrap(time: number, lastTime: number, duration: number): boolean {
   return Number.isFinite(duration) && duration > 0 && time < lastTime && lastTime > duration - 1 && time < 1;
 }
 
-function getItemIdFromWrapper(wrapper: Element): string | null {
-  const match = (wrapper.getAttribute('class') ?? '').match(/(?:^|\s)item-wrapper-(\S+)/);
-  return match ? match[1] : null;
-}
-
-function getInteractiveItemIds(article: Article): Set<string> {
-  const ids = new Set<string>();
-  for (const section of article.sections) {
-    for (const item of section.items) {
-      if (item.link !== undefined) {
-        ids.add(item.id);
-      }
-      if (item.type === ArticleItemType.Video || item.type === ArticleItemType.VimeoEmbed || item.type === ArticleItemType.YoutubeEmbed) {
-        ids.add(item.id);
-      }
-    }
-  }
-  for (const interaction of article.interactions) {
-    for (const interactionTrigger of interaction.triggers) {
-      if ('itemId' in interactionTrigger && interactionTrigger.type === 'click') {
-        ids.add(interactionTrigger.itemId);
-      }
-    }
-  }
-  return ids;
-}

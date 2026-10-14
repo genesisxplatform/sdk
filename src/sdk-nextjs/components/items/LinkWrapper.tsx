@@ -31,7 +31,7 @@ export const LinkWrapper: React.FC<Props> = ({ link, children, style }) => {
     const section = scene?.querySelector<HTMLElement>(`[id="${CSS.escape(validUrl.slice(1))}"]`);
     if (!scene || !section) return;
     const top = section.getBoundingClientRect().top - scene.getBoundingClientRect().top + scene.scrollTop;
-    scene.scrollTo({ top });
+    scene.scrollTo({ top, behavior: 'smooth' });
   };
   if (validUrl) {
     return (

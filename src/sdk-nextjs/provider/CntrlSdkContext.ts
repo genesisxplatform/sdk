@@ -4,7 +4,7 @@ import { KeyframeAny } from '../../sdk/types/keyframe/Keyframe';
 import { Project } from '../../sdk/types/project/Project';
 import { CustomItemRegistry } from './CustomItemRegistry';
 import { CustomSectionRegistry } from './CustomSectionRegistry';
-import { components, Component as TComponent } from '@cntrl-site/components';
+import { components, Component as TComponent } from '@gxpl/components';
 
 interface SdkContextInitProps {
   project: Project;

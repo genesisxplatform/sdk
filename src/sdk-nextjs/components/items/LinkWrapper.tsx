@@ -59,7 +59,7 @@ export const LinkWrapper: React.FC<Props> = ({ link, children, style }) => {
   return <>{children}</>;
 };
 
-function buildValidUrl(url: string): string {
+export function buildValidUrl(url: string): string {
   const prefixes = [
     'http://',
     'https://',

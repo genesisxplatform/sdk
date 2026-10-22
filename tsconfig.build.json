@@ -2,8 +2,8 @@
   "extends": "@tsconfig/node16",
   "compilerOptions": {
     "outDir": "./lib",
-    "moduleResolution": "Node",
-    "module": "CommonJS",
+    "moduleResolution": "Node16",
+    "module": "Node16",
     "jsx": "react-jsx",
     "target": "ES2015",
     "lib": ["DOM", "DOM.Iterable"],
@@ -11,7 +11,8 @@
   },
   "include": [
     "./src/**.ts",
-    "./src/**.tsx"
+    "./src/**.tsx",
+    "./src/sdk/types/*.d.ts"
   ],
   "exclude": [
     "./src/**.test.ts",

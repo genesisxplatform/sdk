@@ -21,6 +21,7 @@ export class FontFaceGenerator {
   font-family: "${font.name}";
   font-weight: ${font.weight};
   font-style: ${font.style};
+  font-display: swap;
   ${eotFile ? `src: url('${eotFile.url}');\n  ` : ''}src: ${otherFiles.join(', ')};
 }`;
     }).join('\n');

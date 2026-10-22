@@ -41,6 +41,7 @@ describe('FontFaceGenerator', () => {
   font-family: "Aeonik";
   font-weight: 400;
   font-style: normal;
+  font-display: swap;
   src: url('link/to/font.eot');
   src: url('link/to/font.woff') format('woff');
 }
@@ -49,6 +50,7 @@ describe('FontFaceGenerator', () => {
   font-family: "Anek Odia";
   font-weight: 700;
   font-style: italic;
+  font-display: swap;
   src: url('link/to/font.woff') format('woff'), url('link/to/font.ttf') format('truetype');
 }`)
   });

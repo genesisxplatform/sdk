@@ -1,18 +1,19 @@
 import JSXStyle from 'styled-jsx/style';
 import { ItemProps } from '../Item';
 import { FC, useId, useState } from 'react';
-import { useCntrlContext } from '../../../provider/useCntrlContext';
 import { useComponentItem } from './useComponentItem';
 import { useItemAngle } from '../useItemAngle';
 import { useRegisterResize } from '../../../common/useRegisterResize';
 import { getStyleFromItemStateAndParams } from '../../../utils/getStyleFromItemStateAndParams';
 import { ComponentItem as TComponentItem } from '../../../../sdk/types/article/Item';
 import { LinkWrapper } from '../LinkWrapper';
+import { pendingElementProps, useComponentElement } from '../../../common/useComponentElement';
 
 export const ComponentItem: FC<ItemProps<TComponentItem>> = ({ item, sectionId, onResize, interactionCtrl }) => {
-  const sdk = useCntrlContext();
   const itemAngle = useItemAngle(item, sectionId);
-  const component = sdk.getComponent(item.params.componentId);
+  // Server markup stays in place (visible, not hydrated) until the component's chunk arrives.
+  const { Element, isPending, isFailed } = useComponentElement(item.params.componentId);
+  const keepsServerMarkup = isPending || isFailed;
   const [ref, setRef] = useState<HTMLDivElement | null>(null);
   const { opacity: itemOpacity, blur: itemBlur } = useComponentItem(item, sectionId);
   useRegisterResize(ref, onResize);
@@ -20,7 +21,6 @@ export const ComponentItem: FC<ItemProps<TComponentItem>> = ({ item, sectionId, 
   const angle = getStyleFromItemStateAndParams(stateParams?.styles?.angle, itemAngle);
   const opacity = getStyleFromItemStateAndParams(stateParams?.styles?.opacity, itemOpacity);
   const blur = getStyleFromItemStateAndParams(stateParams?.styles?.blur, itemBlur);
-  const Element = component ? component.element : undefined;
   const parameters = item.params.parameters;
   const hasLink = Boolean(item.link);
   return (
@@ -32,6 +32,7 @@ export const ComponentItem: FC<ItemProps<TComponentItem>> = ({ item, sectionId, 
     >
       <>
         <div
+          key={keepsServerMarkup ? 'pending' : 'ready'}
           className={`custom-component-${item.id}`}
           ref={setRef}
           style={{
@@ -41,8 +42,9 @@ export const ComponentItem: FC<ItemProps<TComponentItem>> = ({ item, sectionId, 
             willChange: blur !== 0 && blur !== undefined ? 'transform' : 'unset',
             transition: stateParams?.transition ?? 'none'
           }}
+          {...(keepsServerMarkup ? pendingElementProps : {})}
         >
-          {parameters && Element && (
+          {keepsServerMarkup ? null : parameters && Element && (
             <Element
               content={item.params.content}
               {...parameters}

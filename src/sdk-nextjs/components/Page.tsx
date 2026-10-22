@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { FC, useMemo } from 'react';
 import HTMLReactParser from 'html-react-parser';
 import { CNTRLHead } from './Head';
 import { Project } from '../../sdk/types/project/Project';
@@ -13,6 +13,7 @@ import { AssetsCacheProvider } from '../assets/AssetsCacheProvider';
 import { AutoTransitionListener } from './AutoTransition/AutoTransitionListener';
 import { InOutTransitionProvider } from '../provider/InOutTransitionContext';
 import { TransitionMachineContextProvider } from '../provider/TransitionMachineContextProvider';
+import { usePreloadComponentElements } from '../common/usePreloadComponentElements';
 
 export interface PageProps {
   project: Project;
@@ -28,6 +29,8 @@ export const Page: FC<PageProps> = ({ project, articlesData }) => {
   const startScene = project.pages.find(page => page.isStartScene)?.articleId ?? Object.keys(articlesData)[0];
   const scenes = Object.values(articlesData).map(({ article }) => ({ id: article.id }));
   const { relations, scenesAssets } = project;
+  const articles = useMemo(() => Object.values(articlesData).map(({ article }) => article), [articlesData]);
+  usePreloadComponentElements(articles);
   return (
     <>
       <CNTRLHead project={project} />

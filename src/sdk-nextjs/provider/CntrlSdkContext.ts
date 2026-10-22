@@ -4,7 +4,7 @@ import { KeyframeAny } from '../../sdk/types/keyframe/Keyframe';
 import { Project } from '../../sdk/types/project/Project';
 import { CustomItemRegistry } from './CustomItemRegistry';
 import { CustomSectionRegistry } from './CustomSectionRegistry';
-import { components, Component as TComponent } from '@gxpl/components';
+import type { Component as TComponent } from '@gxpl/components';
 
 interface SdkContextInitProps {
   project: Project;
@@ -44,7 +44,6 @@ export class CntrlSdkContext {
     if (publicApiBase) {
       this._publicApiBase = publicApiBase;
     }
-    this.setComponents(components);
     this.setExemplary(project.exemplary);
     this.setFonts(project.fonts);
     for (const article of articles) {
@@ -54,12 +53,6 @@ export class CntrlSdkContext {
 
   private setExemplary(exemplary: number) {
     this._exemplary = exemplary;
-  }
-
-  private setComponents(components: TComponent[]) {
-    for (const component of components) {
-      this.components.set(component.id, component);
-    }
   }
 
   private setFonts(fonts: Project['fonts']) {

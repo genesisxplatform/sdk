@@ -5,6 +5,8 @@ import { Project } from '../../sdk/types/project/Project';
 import { CustomItemRegistry } from './CustomItemRegistry';
 import { CustomSectionRegistry } from './CustomSectionRegistry';
 import { components, Component as TComponent } from '@gxpl/components';
+import { ComponentLink, ComponentLinkMaps, resolveComponentLink } from '../utils/resolveComponentLink/resolveComponentLink';
+import { Link } from '../../sdk/types/article/Item';
 
 interface SdkContextInitProps {
   project: Project;
@@ -19,6 +21,7 @@ export class CntrlSdkContext {
   private _publicApiBase?: string = undefined;
   private sectionHeightMap: Map<string, SectionHeight> = new Map();
   private components: Map<string, TComponent> = new Map();
+  private linkMaps: ComponentLinkMaps = { pageIdArticleIdMap: {}, sectionIdNameMap: {} };
 
   constructor(
     public readonly customItems: CustomItemRegistry,
@@ -50,6 +53,14 @@ export class CntrlSdkContext {
     for (const article of articles) {
       this.setSectionsHeight(article.sections);
     }
+    this.setLinkMaps(project, articles);
+  }
+
+  private setLinkMaps(project: Project, articles: Article[]) {
+    this.linkMaps = {
+      pageIdArticleIdMap: Object.fromEntries(project.pages.map(page => [page.id, page.articleId])),
+      sectionIdNameMap: Object.fromEntries(articles.flatMap(article => article.sections.map(section => [section.id, section.name]))),
+    };
   }
 
   private setExemplary(exemplary: number) {
@@ -92,6 +103,11 @@ export class CntrlSdkContext {
 
   getComponent(id: string): TComponent | undefined {
     return this.components.get(id);
+  }
+
+  /** Converts a link stored in component settings (editor ids) into the SDK link shape. */
+  resolveComponentLink(link: ComponentLink | null | undefined): Link | undefined {
+    return resolveComponentLink(link, this.linkMaps);
   }
 }
 

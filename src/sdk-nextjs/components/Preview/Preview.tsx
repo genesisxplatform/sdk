@@ -7,6 +7,7 @@ import JSXStyle from 'styled-jsx/style';
 import { ChevronIcon } from './ChevronIcon';
 import { IframePreviewWindowContext } from './IframePreviewWindowContext';
 import { getTransitionFromRelation } from '../../../sdk/transitions/utils/getTransitionFromRelation';
+import { ACTIVE_VARIANTS_ATTR } from '../../../sdk/variants/variants';
 
 interface Props {
   relations: Relation[];
@@ -57,6 +58,14 @@ export const Preview: FC<PropsWithChildren<Props>> = ({ children, relations, sta
     if (!iframeWindow) return;
     const iframeHead = iframeDocument.head;
     if (!iframeHead) return;
+
+    // The page is drawn again inside this frame, which is a document of its own: the variant
+    // the head script chose on the page's <html> has to be on the frame's <html> too, or the
+    // rules copied below would hide every copy and show the base.
+    const activeVariants = document.documentElement.getAttribute(ACTIVE_VARIANTS_ATTR);
+    if (activeVariants) {
+      iframeDocument.documentElement.setAttribute(ACTIVE_VARIANTS_ATTR, activeVariants);
+    }
 
     const copyStyleNode = (node: Node) => {
       if (node instanceof HTMLStyleElement) {

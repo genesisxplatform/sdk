@@ -4,6 +4,7 @@ import { AreaAnchor, ItemArea } from './ItemArea';
 import { ItemState } from './ItemState';
 import { FXControlAny, FXCursor } from './FX';
 import { CompoundSettings } from './CompoundSettings';
+import { ItemVariant } from '../../variants/variants';
 
 export type ItemAny = Item<ArticleItemType>;
 
@@ -16,6 +17,8 @@ export interface Item<T extends ArticleItemType> {
   items?: T extends (ArticleItemType.Group | ArticleItemType.Compound) ? ItemAny[] : never;
   sticky: StickyParams | null;
   compoundSettings?: CompoundSettings;
+  /** Set when the item is the base or a copy of a swappable; see sdk/variants. */
+  variant?: ItemVariant;
   state: ItemState<T>;
   params: ItemParamsMap[T];
 }

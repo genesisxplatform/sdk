@@ -27,6 +27,7 @@ import { ItemAny } from '../../../sdk/types/article/Item';
 import { ArticleItemType } from '../../../sdk/types/article/ArticleItemType';
 import { AnchorSide, PositionType } from '../../../sdk/types/article/ItemArea';
 import { TransitionMachineContext } from '../../provider/TransitionMachineContext';
+import { getVariantAttributes } from '../../../sdk/variants/variants';
 
 export interface ItemProps<I extends ItemAny> {
   item: I;
@@ -133,6 +134,7 @@ export const Item: FC<ItemWrapperProps> = ({ item, sectionId, articleHeight, isP
   return (
     <div
       className={`item-wrapper-${item.id}`}
+      {...getVariantAttributes(item.variant)}
       ref={itemWrapperRef}
       onTransitionEnd={(e) => {
         e.stopPropagation();

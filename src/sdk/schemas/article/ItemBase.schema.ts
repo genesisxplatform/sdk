@@ -43,10 +43,17 @@ export const CompoundSettingsSchema = z.object({
   heightMode: z.nativeEnum(DimensionMode),
 });
 
+export const ItemVariantSchema = z.object({
+  value: z.string().optional(),
+  replacedBy: z.array(z.string()).optional(),
+  source: z.string().optional()
+});
+
 export const ItemBaseSchema = z.object({
   id: z.string().min(1),
   area: ItemAreaSchema,
   hidden: z.boolean(),
   link: Link.optional(),
   compoundSettings: CompoundSettingsSchema.optional(),
+  variant: ItemVariantSchema.optional(),
 });

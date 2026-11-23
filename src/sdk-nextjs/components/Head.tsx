@@ -3,6 +3,7 @@ import HTMLReactParser, { domToReact } from 'html-react-parser';
 import Head from 'next/head';
 import { Project } from '../../sdk/types/project/Project';
 import { FontFaceGenerator } from '../../sdk/FontFaceGenerator/FontFaceGenerator';
+import { getVariantsCss } from '../../sdk/variants/variants';
 
 interface Props {
   project: Project;
@@ -28,6 +29,7 @@ export const CNTRLHead: FC<Props> = ({ project }) => {
     );
   });
   const { meta } = project;
+  const variantsCss = getVariantsCss(project.variants);
   return (
     <Head>
       <title>{meta.title}</title>
@@ -46,6 +48,14 @@ export const CNTRLHead: FC<Props> = ({ project }) => {
         <style
           dangerouslySetInnerHTML={{
             __html: ffGenerator.generate()
+          }}
+        />
+      )}
+      {variantsCss && (
+        <style
+          data-gx-variants=""
+          dangerouslySetInnerHTML={{
+            __html: variantsCss
           }}
         />
       )}

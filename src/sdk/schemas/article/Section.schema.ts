@@ -28,6 +28,12 @@ const SectionImageSchema = z.object({
 
 export const SectionMediaSchema = z.discriminatedUnion('type', [SectionVideoSchema, SectionImageSchema]);
 
+const SectionVariantSchema = z.object({
+  value: z.string().min(1),
+  color: z.string().nullable().optional(),
+  media: SectionMediaSchema.nullable().optional()
+});
+
 export const SectionSchema = z.object({
   id: z.string().min(1),
   items: z.array(ItemSchema),
@@ -35,5 +41,6 @@ export const SectionSchema = z.object({
   height: SectionHeightSchema,
   hidden: z.boolean(),
   color: z.string().nullable(),
-  media: SectionMediaSchema.optional()
+  media: SectionMediaSchema.optional(),
+  variants: z.array(SectionVariantSchema).optional()
 });

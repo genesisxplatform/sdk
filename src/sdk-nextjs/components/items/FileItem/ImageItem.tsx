@@ -116,6 +116,9 @@ export const ImageItem: FC<ItemProps<TImageItem>> = ({ item, sectionId, onResize
               alt=""
               className={`image image-${item.id}`}
               style={inlineStyles}
+              // A hidden variant must not download: `display: none` does not stop an
+              // eager image, but a lazy one is fetched only once it is rendered.
+              loading={item.variant ? 'lazy' : undefined}
               src={item.params.url}
             />
           )}

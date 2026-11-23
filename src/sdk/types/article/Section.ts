@@ -31,6 +31,16 @@ export type SectionImage = {
 
 export type SectionMedia = SectionVideo | SectionImage;
 
+/**
+ * A variant value's own background (docs/dynamic-sites/03-page-contract.md). A key that is
+ * absent means "as the base"; `media: null` means the value shows no media.
+ */
+export interface SectionVariant {
+  value: string;
+  color?: string | null;
+  media?: SectionMedia | null;
+}
+
 export interface Section {
   id: string;
   name?: string;
@@ -39,4 +49,6 @@ export interface Section {
   items: ItemAny[];
   color: string | null;
   media?: SectionMedia;
+  /** Only the values whose background differs from the base. */
+  variants?: SectionVariant[];
 }

@@ -49,6 +49,10 @@ export const VideoItem: FC<ItemProps<TVideoItem>> = ({ item, sectionId, onResize
   const rect = useElementRect(videoWrapper);
   const rectWidth = Math.floor(rect?.width ?? 0);
   const rectHeight = Math.floor(rect?.height ?? 0);
+  // In a swappable, the server-rendered <video> must not fetch anything while it may be a
+  // hidden variant: no poster, no preload, no autoplay. The assets cache holds the media of
+  // the shown variant only and takes over after hydration, autoplay included.
+  const isVariant = item.variant !== undefined;
   const scrollPlayback = params.scrollPlayback;
   const hasScrollPlayback = scrollPlayback !== null;
   const wrapperStateParams = interactionCtrl?.getState<number>(['angle', 'opacity', 'blur']);
@@ -213,10 +217,10 @@ export const VideoItem: FC<ItemProps<TVideoItem>> = ({ item, sectionId, onResize
           <>
             {isVideoVisible && !videoCache.has(videoCacheKey) && (
               <video
-                poster={item.params.coverUrl ?? ''}
+                poster={isVariant ? undefined : item.params.coverUrl ?? ''}
                 ref={setVideo}
-                autoPlay={params.play === 'auto'}
-                preload="auto"
+                autoPlay={!isVariant && params.play === 'auto'}
+                preload={isVariant ? 'none' : 'auto'}
                 onClick={() => {
                   setIsVideoInteracted(true);
                 }}
@@ -256,6 +260,7 @@ export const VideoItem: FC<ItemProps<TVideoItem>> = ({ item, sectionId, onResize
                   video.play();
                 }}
                 src={item.params.coverUrl ?? ''}
+                loading={isVariant ? 'lazy' : undefined}
                 className={`video-cover-${item.id}`}
                 onClick={() => {
                   if (!video) return;

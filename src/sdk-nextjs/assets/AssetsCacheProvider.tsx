@@ -1,10 +1,12 @@
 import { createContext, CSSProperties, FC, PropsWithChildren, useEffect, useState } from 'react';
 import { getCacheAssetKey } from './getCacheAssetKey';
+import { SceneAsset } from '../../sdk/types/project/Project';
+import { isVariantShown, readActiveVariants } from '../../sdk/variants/variants';
 
 export const AssetsCacheContext = createContext<{ videoCache: Map<string, HTMLVideoElement>, imageCache: Map<string, HTMLImageElement> }>({ videoCache: new Map(), imageCache: new Map() });
 
 interface Props {
-  assets: { url: string, id: string, articleId: string }[];
+  assets: SceneAsset[];
 }
 
 export const AssetsCacheProvider: FC<PropsWithChildren<Props>> = ({ children, assets }) => {
@@ -12,7 +14,10 @@ export const AssetsCacheProvider: FC<PropsWithChildren<Props>> = ({ children, as
   const [imageCache, setImageCache] = useState<Map<string, HTMLImageElement>>(new Map());
 
   useEffect(() => {
-    assets.forEach(({ url, id, articleId }) => {
+    // The head script has already chosen the variant; media of the others is never requested.
+    const activeVariants = readActiveVariants();
+    assets.forEach(({ url, id, articleId, variant }) => {
+      if (!isVariantShown(variant, activeVariants)) return;
       if (isVideoAsset(url)) {
         const video = getVideo(url);
         setVideoCache(prev => prev.set(getCacheAssetKey(url, id, articleId), video));

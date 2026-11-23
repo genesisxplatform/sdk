@@ -21,7 +21,9 @@ export type { RichTextBlock, RichTextEntity, RichTextStyle } from './sdk/types/a
 export type { ItemArea } from './sdk/types/article/ItemArea';
 export type { ItemState, ItemStateParams, StateParams, ItemStatesMap } from './sdk/types/article/ItemState';
 export type { Interaction, InteractionItemTrigger, InteractionScrollTrigger, InteractionState } from './sdk/types/article/Interaction';
-export type { Project } from './sdk/types/project/Project';
+export type { Project, SceneAsset } from './sdk/types/project/Project';
+export type { ItemVariant, ProjectVariants } from './sdk/variants/variants';
+export { variantsHeadScript, getVariantsCss, parseVariantParam, VARIANT_PARAM } from './sdk/variants/variants';
 export type { TFixedLayer, FixedLayerTransition, TransitionTiming } from './sdk/types/project/FixedLayer';
 export type { Meta } from './sdk/types/project/Meta';
 export type { KeyframeValueMap, KeyframeAny } from './sdk/types/keyframe/Keyframe';

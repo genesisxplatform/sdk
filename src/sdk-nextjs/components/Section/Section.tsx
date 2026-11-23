@@ -1,4 +1,4 @@
-import React, { FC, ReactElement, useId, useRef, useMemo } from 'react';
+import React, { FC, ReactElement, useEffect, useId, useRef, useMemo, useState } from 'react';
 import JSXStyle from 'styled-jsx/style';
 
 import { useCntrlContext } from '../../provider/useCntrlContext';
@@ -8,6 +8,7 @@ import { SectionVideo } from './SectionVideo';
 import { SectionImage } from './SectionImage';
 import { isOverflowClipSupported } from '../../utils/checkOverflowClipSupport';
 import { SectionHeight, SectionHeightMode, Section as TSection } from '../../../sdk/types/article/Section';
+import { getSectionBackground, getSectionColorCss, readActiveVariants } from '../../../sdk/variants/variants';
 
 type SectionChild = ReactElement<any, any>;
 const DEFAULT_COLOR = 'rgba(0, 0, 0, 0)';
@@ -27,15 +28,26 @@ export const Section: FC<Props> = ({ section, data, children, articleId }) => {
   const SectionComponent = section.name ? customSections.getComponent(section.name) : undefined;
   useSectionRegistry(section.id, sectionRef.current);
 
+  // The variant the head script chose. Read after mount, so the first render matches the
+  // server's; media is not mounted before that either (it waits for `sectionRef`).
+  const [activeVariants, setActiveVariants] = useState<string[]>([]);
+  useEffect(() => {
+    setActiveVariants(readActiveVariants());
+  }, []);
+  const sectionMedia = useMemo(
+    () => getSectionBackground(section, activeVariants).media,
+    [section, activeVariants]
+  );
+
   const media = useMemo(() => {
-    if (section.media && !isOverflowClipSupported()) {
+    if (sectionMedia && !isOverflowClipSupported()) {
       return {
-        ...section.media,
+        ...sectionMedia,
         position: 'local'
       };
     }
-    return section.media;
-  }, [section.media]);
+    return sectionMedia;
+  }, [sectionMedia]);
 
   if (SectionComponent) return <div ref={sectionRef}><SectionComponent data={data}>{children}</SectionComponent></div>;
 
@@ -75,6 +87,7 @@ export const Section: FC<Props> = ({ section, data, children, articleId }) => {
           background-color: ${CntrlColor.parse(color ?? DEFAULT_COLOR).fmt('rgba')};
           overflow: clip;
         }
+        ${getSectionColorCss(`.section-${section.id}`, section.variants, c => CntrlColor.parse(c ?? DEFAULT_COLOR).fmt('rgba'))}
         .section-background-overlay-${section.id} {
           height: ${getSectionHeight(height)};
           width: 100%;

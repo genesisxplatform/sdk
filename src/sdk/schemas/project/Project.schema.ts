@@ -64,8 +64,21 @@ export const ProjectSchema = z.object({
   scenesAssets: z.array(z.object({
     url: z.string(),
     id: z.string(),
-    articleId: z.string()
+    articleId: z.string(),
+    variant: z.object({
+      value: z.string().optional(),
+      replacedBy: z.array(z.string()).optional()
+    }).optional()
   })),
+  variants: z.object({
+    dimensions: z.array(z.object({
+      id: z.string(),
+      // The designer's names, kept so the export can publish them in gx-variants.json.
+      name: z.string().optional(),
+      values: z.array(z.string()),
+      valueNames: z.record(z.string(), z.string()).optional()
+    }))
+  }).optional(),
   relations: z.array(z.object({
     from: z.string().min(1),
     to: z.string().min(1),
